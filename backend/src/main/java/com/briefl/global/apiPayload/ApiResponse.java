@@ -1,4 +1,4 @@
-package com.briefl.common;
+package com.briefl.global.apiPayload;
 
 public record ApiResponse<T>(
         boolean isSuccess,

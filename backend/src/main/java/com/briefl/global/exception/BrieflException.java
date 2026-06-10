@@ -1,4 +1,4 @@
-package com.briefl.exception;
+package com.briefl.global.exception;
 
 import lombok.Getter;
 
