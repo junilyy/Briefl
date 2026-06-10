@@ -61,10 +61,6 @@ function eventDateLabel(value: string | null) {
   return value?.trim() || '일정 미정'
 }
 
-function faviconUrl(source: string) {
-  return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(source)}&sz=96`
-}
-
 function App() {
   const [stocks, setStocks] = useState<Stock[]>([])
   const [selectedStock, setSelectedStock] = useState('')
@@ -157,65 +153,69 @@ function App() {
 
           <div className="workspace-layout">
             <section className="control-panel" aria-label="리포트 생성 컨트롤">
-              <span className="eyebrow">Live News Brief</span>
-              <h1 id="page-title">관심 종목 뉴스 리포트를 바로 생성합니다</h1>
-              <p>
-                백엔드의 지원 종목 API와 리포트 생성 API를 호출해 오늘의 뉴스
-                요약, 종합 분석, 가격 영향 가능성, 체크 이벤트를 화면에
-                표시합니다.
-              </p>
-
-              <div className="stock-control">
-                <label htmlFor="stock-select">지원 종목</label>
-                <select
-                  id="stock-select"
-                  value={selectedStock}
-                  disabled={stockState === 'loading' || reportState === 'loading'}
-                  onChange={(event) => {
-                    setSelectedStock(event.target.value)
-                    setReport(null)
-                    setMessage('')
-                    setReportState('idle')
-                  }}
-                >
-                  {stocks.map((stock) => (
-                    <option key={stock.stockName} value={stock.stockName}>
-                      {stock.displayName} · {stock.market}
-                    </option>
-                  ))}
-                </select>
+              <div className="control-copy">
+                <span className="eyebrow">Live News Brief</span>
+                <h1 id="page-title">관심 종목 뉴스 리포트를 바로 생성합니다</h1>
+                <p>
+                  백엔드의 지원 종목 API와 리포트 생성 API를 호출해 오늘의 뉴스
+                  요약, 종합 분석, 가격 영향 가능성, 체크 이벤트를 화면에
+                  표시합니다.
+                </p>
               </div>
 
-              <div className="action-row">
-                <button
-                  className="primary-button"
-                  type="button"
-                  disabled={stockState !== 'success' || reportState === 'loading'}
-                  onClick={handleCreateReport}
-                >
-                  {reportState === 'loading' ? '분석 중...' : '오늘 리포트 생성'}
-                </button>
-                <button
-                  className="secondary-button"
-                  type="button"
-                  disabled={stockState !== 'success' || reportState === 'loading'}
-                  onClick={handleLoadTodayReport}
-                >
-                  저장된 리포트 조회
-                </button>
-              </div>
+              <div className="control-actions">
+                <div className="stock-control">
+                  <label htmlFor="stock-select">지원 종목</label>
+                  <select
+                    id="stock-select"
+                    value={selectedStock}
+                    disabled={stockState === 'loading' || reportState === 'loading'}
+                    onChange={(event) => {
+                      setSelectedStock(event.target.value)
+                      setReport(null)
+                      setMessage('')
+                      setReportState('idle')
+                    }}
+                  >
+                    {stocks.map((stock) => (
+                      <option key={stock.stockName} value={stock.stockName}>
+                        {stock.displayName} · {stock.market}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-              <div className="status-box" data-state={reportState}>
-                {stockState === 'loading'
-                  ? '지원 종목을 불러오는 중입니다.'
-                  : message ||
-                    '종목을 선택한 뒤 오늘 리포트를 생성하거나 저장된 리포트를 조회하세요.'}
-              </div>
+                <div className="action-row">
+                  <button
+                    className="primary-button"
+                    type="button"
+                    disabled={stockState !== 'success' || reportState === 'loading'}
+                    onClick={handleCreateReport}
+                  >
+                    {reportState === 'loading' ? '분석 중...' : '오늘 리포트 생성'}
+                  </button>
+                  <button
+                    className="secondary-button"
+                    type="button"
+                    disabled={stockState !== 'success' || reportState === 'loading'}
+                    onClick={handleLoadTodayReport}
+                  >
+                    저장된 리포트 조회
+                  </button>
+                </div>
 
-              <p className="notice-box">
-                브리플은 투자 추천이나 매수/매도 판단을 제공하지 않습니다.
-                뉴스 요약과 가격 영향 가능성은 투자 판단 보조 정보입니다.
-              </p>
+                <div className="status-box" data-state={reportState}>
+                  {stockState === 'loading'
+                    ? '지원 종목을 불러오는 중입니다.'
+                    : message ||
+                      '종목을 선택한 뒤 오늘 리포트를 생성하거나 저장된 리포트를 조회하세요.'}
+                </div>
+
+                <p className="notice-box">
+                  브리플은 투자 추천이나 매수/매도 판단을 제공하지 않습니다.
+                  뉴스 요약과 가격 영향 가능성은 투자 판단 보조 정보입니다.
+                </p>
+              </div>
             </section>
 
             <ReportDashboard
@@ -388,9 +388,6 @@ function ReferencedNewsList({ items }: { items: ReportReferencedNews[] }) {
         <div className="news-list">
           {items.map((item) => (
             <article className="news-item" key={`${item.title}-${item.url}`}>
-              <div className="news-thumb" aria-hidden="true">
-                <img src={faviconUrl(item.source)} alt="" loading="lazy" />
-              </div>
               <div className="news-item-top">
                 <span className="signal-badge neutral">
                   {newsTypeLabels[item.newsType] ?? item.newsType}
