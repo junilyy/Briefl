@@ -1,6 +1,8 @@
 package com.briefl.domain.stock.service;
 
 import com.briefl.domain.stock.dto.StockResponse;
+import com.briefl.domain.stock.entity.Stock;
+import com.briefl.domain.stock.exception.UnsupportedStockException;
 import com.briefl.domain.stock.repository.StockRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -20,5 +22,10 @@ public class StockService {
                 .stream()
                 .map(StockResponse::from)
                 .toList();
+    }
+
+    public Stock getSupportedStock(String stockName) {
+        return stockRepository.findByStockName(stockName)
+                .orElseThrow(UnsupportedStockException::new);
     }
 }

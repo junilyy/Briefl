@@ -9,6 +9,8 @@ public enum ErrorCode {
     NOT_FOUND(HttpStatus.NOT_FOUND, "COMMON404", "요청한 리소스를 찾을 수 없습니다."),
     VALIDATION_ERROR(HttpStatus.BAD_REQUEST, "COMMON400_VALIDATION", "요청 값이 올바르지 않습니다."),
     METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED, "COMMON405", "지원하지 않는 HTTP 메서드입니다."),
+    UNSUPPORTED_STOCK(HttpStatus.BAD_REQUEST, "STOCK400", "지원하지 않는 종목입니다."),
+    REPORT_NOT_FOUND(HttpStatus.NOT_FOUND, "REPORT404", "오늘 생성된 리포트가 없습니다."),
     EXTERNAL_API_AUTH_MISSING(HttpStatus.INTERNAL_SERVER_ERROR, "EXTERNAL500_AUTH", "외부 API 인증 정보가 설정되지 않았습니다."),
     EXTERNAL_API_ERROR(HttpStatus.BAD_GATEWAY, "EXTERNAL502", "외부 API 호출에 실패했습니다."),
     AI_ANALYSIS_PARSE_ERROR(HttpStatus.BAD_GATEWAY, "AI502_PARSE", "AI 분석 응답을 해석하지 못했습니다."),
