@@ -152,18 +152,41 @@ function App() {
           </nav>
 
           <div className="workspace-layout">
-            <section className="control-panel" aria-label="리포트 생성 컨트롤">
-              <div className="control-copy">
-                <span className="eyebrow">Live News Brief</span>
-                <h1 id="page-title">관심 종목 뉴스 리포트를 바로 생성합니다</h1>
+            <section className="hero-workbench" aria-label="브리플 리포트 생성">
+              <div className="hero-copy">
+                <span className="eyebrow">AI Market Brief</span>
+                <h1 id="page-title">뉴스가 쏟아지는 날, 내 종목에 중요한 것만 남깁니다</h1>
                 <p>
-                  백엔드의 지원 종목 API와 리포트 생성 API를 호출해 오늘의 뉴스
-                  요약, 종합 분석, 가격 영향 가능성, 체크 이벤트를 화면에
-                  표시합니다.
+                  브리플은 관심 종목과 연결된 뉴스를 모으고, 호재·중립·악재
+                  가능성을 종합 분석해 오늘 확인해야 할 흐름과 체크 이벤트를
+                  한 화면에 정리합니다.
                 </p>
+                <div className="hero-points" aria-label="브리플 핵심 기능">
+                  <span>참고 뉴스 링크</span>
+                  <span>AI 종합 분석</span>
+                  <span>체크 이벤트</span>
+                </div>
+                <div className="signal-strip" aria-hidden="true">
+                  <div>
+                    <strong>수집</strong>
+                    <span>Naver News</span>
+                  </div>
+                  <div>
+                    <strong>분석</strong>
+                    <span>호재 / 중립 / 악재</span>
+                  </div>
+                  <div>
+                    <strong>정리</strong>
+                    <span>브리프 리포트</span>
+                  </div>
+                </div>
               </div>
 
-              <div className="control-actions">
+              <div className="brief-console">
+                <div className="console-top">
+                  <span>Live API</span>
+                  <strong>{selectedStockLabel || '종목 선택'}</strong>
+                </div>
                 <div className="stock-control">
                   <label htmlFor="stock-select">지원 종목</label>
                   <select
