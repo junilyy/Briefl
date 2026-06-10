@@ -1,5 +1,6 @@
 .page-shell {
   min-height: 100vh;
+  overflow-x: hidden;
   color: var(--color-text);
 }
 
@@ -97,10 +98,12 @@
   grid-template-columns: 1fr;
   gap: 24px;
   align-items: start;
+  min-width: 0;
 }
 
 .control-panel,
 .report-dashboard {
+  min-width: 0;
   border: 1px solid rgba(255, 255, 255, 0.72);
   border-radius: 28px;
   background: rgba(255, 255, 255, 0.9);
@@ -249,6 +252,7 @@
 
 .report-dashboard {
   min-height: 680px;
+  overflow: hidden;
   padding: 32px;
 }
 
@@ -354,6 +358,8 @@
 .price-impact,
 .news-panel,
 .events-panel {
+  min-width: 0;
+  max-width: 100%;
   border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 22px;
   background: rgba(255, 255, 255, 0.76);
@@ -559,8 +565,11 @@
   grid-auto-flow: column;
   grid-auto-columns: minmax(300px, 360px);
   gap: 14px;
+  width: 100%;
+  min-width: 0;
   max-width: 100%;
   overflow-x: auto;
+  overflow-y: hidden;
   overscroll-behavior-x: contain;
   scroll-snap-type: x mandatory;
   padding: 2px 2px 14px;
@@ -568,6 +577,7 @@
 }
 
 .news-item {
+  min-width: 0;
   scroll-snap-align: start;
   display: grid;
   grid-template-rows: auto auto 1fr;
@@ -623,6 +633,7 @@
 
 .events-panel {
   margin-top: 14px;
+  max-width: 100%;
   background: linear-gradient(180deg, #0f172a 0%, #18325e 100%);
   color: rgba(255, 255, 255, 0.9);
 }
