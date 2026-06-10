@@ -21,9 +21,11 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.LinkedHashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
@@ -56,18 +58,28 @@ public class NewsSearchService {
         List<NewsItemDto> directNews = collectTodayNews(
                 parseKeywords(stock.getDirectKeywordsJson()),
                 NewsType.DIRECT,
-                DIRECT_NEWS_LIMIT
+                DIRECT_NEWS_LIMIT,
+                stock.getStockName(),
+                Set.of()
         );
         List<NewsItemDto> indirectNews = collectTodayNews(
                 parseKeywords(stock.getIndirectKeywordsJson()),
                 NewsType.INDIRECT,
-                INDIRECT_NEWS_LIMIT
+                INDIRECT_NEWS_LIMIT,
+                stock.getStockName(),
+                normalizedTitles(directNews)
         );
 
         return new NewsSearchResult(directNews, indirectNews);
     }
 
-    private List<NewsItemDto> collectTodayNews(List<String> keywords, NewsType newsType, int limit) {
+    private List<NewsItemDto> collectTodayNews(
+            List<String> keywords,
+            NewsType newsType,
+            int limit,
+            String stockName,
+            Set<String> excludedTitles
+    ) {
         Map<String, NewsItemDto> uniqueNews = new LinkedHashMap<>();
         LocalDate today = LocalDate.now(SEOUL_ZONE);
 
@@ -79,6 +91,8 @@ public class NewsSearchService {
             searchByKeyword(keyword, newsType).stream()
                     .filter(news -> news.publishedAt() != null)
                     .filter(news -> news.publishedAt().toLocalDate().isEqual(today))
+                    .filter(news -> newsType != NewsType.DIRECT || containsStockName(news, stockName))
+                    .filter(news -> !excludedTitles.contains(normalizeTitle(news.title())))
                     .forEach(news -> uniqueNews.putIfAbsent(normalizeTitle(news.title()), news));
         }
 
@@ -96,6 +110,7 @@ public class NewsSearchService {
                             .queryParam("display", SEARCH_DISPLAY_SIZE)
                             .queryParam("start", 1)
                             .queryParam("sort", "date")
+                            .encode()
                             .build()
                             .toUri())
                     .header("X-Naver-Client-Id", naverProperties.clientId())
@@ -207,5 +222,17 @@ public class NewsSearchService {
 
     private String normalizeTitle(String title) {
         return title.replaceAll("\\s+", " ").trim();
+    }
+
+    private boolean containsStockName(NewsItemDto news, String stockName) {
+        return news.title().contains(stockName) || news.description().contains(stockName);
+    }
+
+    private Set<String> normalizedTitles(List<NewsItemDto> newsItems) {
+        Set<String> titles = new HashSet<>();
+        for (NewsItemDto newsItem : newsItems) {
+            titles.add(normalizeTitle(newsItem.title()));
+        }
+        return titles;
     }
 }
