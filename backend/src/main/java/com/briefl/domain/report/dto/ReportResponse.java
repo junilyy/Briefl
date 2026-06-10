@@ -11,9 +11,8 @@ public record ReportResponse(
         String overallSentiment,
         Double newsImpactScore,
         ReportPriceImpactResponse priceImpact,
-        ReportSentimentCountsResponse counts,
-        List<ReportDirectNewsResponse> directNews,
-        List<ReportIndirectNewsResponse> indirectNews,
+        List<ReportReferencedNewsResponse> referencedNews,
+        List<ReportSentimentAnalysisResponse> sentimentAnalyses,
         List<ReportCheckEventResponse> checkEvents,
         String caution
 ) {

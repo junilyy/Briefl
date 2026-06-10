@@ -33,8 +33,11 @@ class OpenAiAnalysisServiceTest {
 
         assertThat(result.stockName()).isEqualTo("삼성전자");
         assertThat(result.overallSentiment()).isEqualTo("중립");
-        assertThat(result.directNews()).hasSize(1);
-        assertThat(result.indirectNews()).hasSize(1);
+        assertThat(result.newsImpactScore()).isEqualTo(0.0);
+        assertThat(result.sentimentAnalyses()).hasSize(3);
+        assertThat(result.sentimentAnalyses().get(0).relatedNewsTitles())
+                .contains("삼성전자 AI 반도체 수요 확대", "미국 금리 동결 가능성 확대");
+        assertThat(result.checkEvents()).hasSize(1);
     }
 
     @Test

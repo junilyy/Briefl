@@ -2,20 +2,15 @@ package com.briefl.domain.report.service;
 
 import com.briefl.domain.analysis.dto.AiAnalysisResult;
 import com.briefl.domain.analysis.dto.CheckEventAnalysis;
-import com.briefl.domain.analysis.dto.ImpactScoredAnalysisResult;
-import com.briefl.domain.analysis.dto.ScoredDirectNewsAnalysis;
-import com.briefl.domain.analysis.dto.ScoredIndirectNewsAnalysis;
-import com.briefl.domain.analysis.service.ImpactScoreService;
 import com.briefl.domain.analysis.service.OpenAiAnalysisService;
 import com.briefl.domain.news.dto.NewsItemDto;
 import com.briefl.domain.news.dto.NewsSearchResult;
 import com.briefl.domain.news.service.NewsSearchService;
 import com.briefl.domain.report.dto.ReportCheckEventResponse;
-import com.briefl.domain.report.dto.ReportDirectNewsResponse;
-import com.briefl.domain.report.dto.ReportIndirectNewsResponse;
 import com.briefl.domain.report.dto.ReportPriceImpactResponse;
+import com.briefl.domain.report.dto.ReportReferencedNewsResponse;
 import com.briefl.domain.report.dto.ReportResponse;
-import com.briefl.domain.report.dto.ReportSentimentCountsResponse;
+import com.briefl.domain.report.dto.ReportSentimentAnalysisResponse;
 import com.briefl.domain.report.entity.Report;
 import com.briefl.domain.report.exception.ReportNotFoundException;
 import com.briefl.domain.report.repository.ReportRepository;
@@ -27,15 +22,15 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ReportService {
@@ -45,7 +40,6 @@ public class ReportService {
     private final StockService stockService;
     private final NewsSearchService newsSearchService;
     private final OpenAiAnalysisService openAiAnalysisService;
-    private final ImpactScoreService impactScoreService;
     private final ReportRepository reportRepository;
     private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 
@@ -55,44 +49,55 @@ public class ReportService {
         LocalDate today = LocalDate.now(SEOUL_ZONE);
 
         return reportRepository.findByStockNameAndReportDate(stock.getStockName(), today)
-                .map(this::toReportResponse)
+                .map(report -> toReportResponseOrRegenerate(report, stock, today))
                 .orElseGet(() -> generateAndSaveReport(stock, today));
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public ReportResponse getTodayReport(String stockName) {
         Stock stock = stockService.getSupportedStock(stockName);
         LocalDate today = LocalDate.now(SEOUL_ZONE);
 
         return reportRepository.findByStockNameAndReportDate(stock.getStockName(), today)
-                .map(this::toReportResponse)
+                .map(report -> toReportResponseOrRegenerate(report, stock, today))
                 .orElseThrow(ReportNotFoundException::new);
     }
 
     private ReportResponse generateAndSaveReport(Stock stock, LocalDate reportDate) {
         NewsSearchResult newsSearchResult = newsSearchService.searchTodayNews(stock);
         AiAnalysisResult aiAnalysisResult = openAiAnalysisService.analyze(stock.getStockName(), newsSearchResult);
-        ImpactScoredAnalysisResult scoredResult = impactScoreService.calculate(aiAnalysisResult);
-        ReportResponse responseWithoutId = toReportResponse(null, reportDate, scoredResult, newsSearchResult);
+        ReportResponse responseWithoutId = toReportResponse(null, reportDate, aiAnalysisResult, newsSearchResult);
 
         Report savedReport = reportRepository.save(Report.builder()
                 .stockName(stock.getStockName())
                 .reportDate(reportDate)
-                .briefSummary(scoredResult.briefSummary())
-                .overallSentiment(scoredResult.overallSentiment())
-                .newsImpactScore(scoredResult.newsImpactScore())
-                .priceDirection(scoredResult.priceImpact().direction())
-                .priceConfidence(scoredResult.priceImpact().confidence())
-                .priceReason(scoredResult.priceImpact().reason())
+                .briefSummary(aiAnalysisResult.briefSummary())
+                .overallSentiment(aiAnalysisResult.overallSentiment())
+                .newsImpactScore(defaultScore(aiAnalysisResult.newsImpactScore()))
+                .priceDirection(aiAnalysisResult.priceImpact().direction())
+                .priceConfidence(aiAnalysisResult.priceImpact().confidence())
+                .priceReason(aiAnalysisResult.priceImpact().reason())
                 .rawNewsJson(writeJson(newsSearchResult))
                 .aiResultJson(writeJson(aiAnalysisResult))
                 .finalResultJson(writeJson(responseWithoutId))
                 .build());
 
-        return toReportResponse(savedReport.getId(), reportDate, scoredResult, newsSearchResult);
+        return toReportResponse(savedReport.getId(), reportDate, aiAnalysisResult, newsSearchResult);
     }
 
-    private ReportResponse toReportResponse(Report report) {
+    private ReportResponse toReportResponseOrRegenerate(Report report, Stock stock, LocalDate reportDate) {
+        ReportResponse response = toReportResponseOrNull(report);
+        if (response != null) {
+            return response;
+        }
+
+        log.info("Regenerating report because saved finalResultJson is incompatible. reportId={}", report.getId());
+        reportRepository.delete(report);
+        reportRepository.flush();
+        return generateAndSaveReport(stock, reportDate);
+    }
+
+    private ReportResponse toReportResponseOrNull(Report report) {
         try {
             ReportResponse parsed = objectMapper.readValue(report.getFinalResultJson(), ReportResponse.class);
             return new ReportResponse(
@@ -103,78 +108,40 @@ public class ReportService {
                     parsed.overallSentiment(),
                     parsed.newsImpactScore(),
                     parsed.priceImpact(),
-                    parsed.counts(),
-                    parsed.directNews(),
-                    parsed.indirectNews(),
+                    parsed.referencedNews(),
+                    parsed.sentimentAnalyses(),
                     parsed.checkEvents(),
                     parsed.caution()
             );
         } catch (JsonProcessingException exception) {
-            throw new BrieflException(ErrorCode.INTERNAL_SERVER_ERROR, "저장된 리포트 응답을 해석하지 못했습니다.");
+            return null;
         }
     }
 
     private ReportResponse toReportResponse(
             Long reportId,
             LocalDate reportDate,
-            ImpactScoredAnalysisResult scoredResult,
+            AiAnalysisResult aiAnalysisResult,
             NewsSearchResult newsSearchResult
     ) {
-        Map<String, NewsItemDto> directNewsByTitle = toNewsMap(newsSearchResult.directNews());
-        Map<String, NewsItemDto> indirectNewsByTitle = toNewsMap(newsSearchResult.indirectNews());
-
         return new ReportResponse(
                 reportId,
-                scoredResult.stockName(),
+                aiAnalysisResult.stockName(),
                 reportDate,
-                scoredResult.briefSummary(),
-                scoredResult.overallSentiment(),
-                scoredResult.newsImpactScore(),
-                ReportPriceImpactResponse.from(scoredResult.priceImpact()),
-                ReportSentimentCountsResponse.from(scoredResult.counts()),
-                scoredResult.directNews().stream()
-                        .map(news -> toDirectNewsResponse(news, directNewsByTitle.get(normalizeTitle(news.title()))))
+                aiAnalysisResult.briefSummary(),
+                aiAnalysisResult.overallSentiment(),
+                defaultScore(aiAnalysisResult.newsImpactScore()),
+                ReportPriceImpactResponse.from(aiAnalysisResult.priceImpact()),
+                referencedNews(newsSearchResult).stream()
+                        .map(ReportReferencedNewsResponse::from)
                         .toList(),
-                scoredResult.indirectNews().stream()
-                        .map(news -> toIndirectNewsResponse(news, indirectNewsByTitle.get(normalizeTitle(news.title()))))
+                emptyIfNull(aiAnalysisResult.sentimentAnalyses()).stream()
+                        .map(ReportSentimentAnalysisResponse::from)
                         .toList(),
-                emptyIfNull(scoredResult.checkEvents()).stream()
+                emptyIfNull(aiAnalysisResult.checkEvents()).stream()
                         .map(this::toCheckEventResponse)
                         .toList(),
-                scoredResult.caution()
-        );
-    }
-
-    private ReportDirectNewsResponse toDirectNewsResponse(ScoredDirectNewsAnalysis analysis, NewsItemDto news) {
-        return new ReportDirectNewsResponse(
-                analysis.title(),
-                news == null ? "" : news.url(),
-                news == null ? "" : news.source(),
-                news == null ? null : news.publishedAt(),
-                analysis.sentiment(),
-                analysis.sentimentScore(),
-                analysis.relevance(),
-                analysis.importance(),
-                analysis.recency(),
-                analysis.impactScore(),
-                analysis.reason()
-        );
-    }
-
-    private ReportIndirectNewsResponse toIndirectNewsResponse(ScoredIndirectNewsAnalysis analysis, NewsItemDto news) {
-        return new ReportIndirectNewsResponse(
-                analysis.title(),
-                news == null ? "" : news.url(),
-                news == null ? "" : news.source(),
-                news == null ? null : news.publishedAt(),
-                analysis.relatedFactor(),
-                analysis.sentiment(),
-                analysis.sentimentScore(),
-                analysis.relevance(),
-                analysis.importance(),
-                analysis.recency(),
-                analysis.impactScore(),
-                analysis.reason()
+                aiAnalysisResult.caution()
         );
     }
 
@@ -182,21 +149,19 @@ public class ReportService {
         return ReportCheckEventResponse.from(checkEvent);
     }
 
-    private Map<String, NewsItemDto> toNewsMap(List<NewsItemDto> newsItems) {
-        return emptyIfNull(newsItems).stream()
-                .collect(Collectors.toMap(
-                        news -> normalizeTitle(news.title()),
-                        Function.identity(),
-                        (first, second) -> first
-                ));
+    private List<NewsItemDto> referencedNews(NewsSearchResult newsSearchResult) {
+        List<NewsItemDto> referencedNews = new ArrayList<>();
+        referencedNews.addAll(emptyIfNull(newsSearchResult.directNews()));
+        referencedNews.addAll(emptyIfNull(newsSearchResult.indirectNews()));
+        return referencedNews;
     }
 
     private <T> List<T> emptyIfNull(List<T> values) {
         return values == null ? Collections.emptyList() : values;
     }
 
-    private String normalizeTitle(String title) {
-        return title == null ? "" : title.replaceAll("\\s+", " ").trim();
+    private double defaultScore(Double score) {
+        return score == null ? 0.0 : score;
     }
 
     private String writeJson(Object value) {

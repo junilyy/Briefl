@@ -2,9 +2,8 @@ package com.briefl.domain.analysis.service;
 
 import com.briefl.domain.analysis.dto.AiAnalysisResult;
 import com.briefl.domain.analysis.dto.CheckEventAnalysis;
-import com.briefl.domain.analysis.dto.DirectNewsAnalysis;
-import com.briefl.domain.analysis.dto.IndirectNewsAnalysis;
 import com.briefl.domain.analysis.dto.PriceImpactAnalysis;
+import com.briefl.domain.analysis.dto.SentimentAnalysis;
 import com.briefl.domain.news.dto.NewsItemDto;
 import com.briefl.domain.news.dto.NewsSearchResult;
 import com.briefl.global.config.ExternalApiProperties;
@@ -48,44 +47,41 @@ public class OpenAiAnalysisService {
     }
 
     private AiAnalysisResult createMockAnalysis(String stockName, NewsSearchResult newsSearchResult) {
-        List<DirectNewsAnalysis> directNews = newsSearchResult.directNews().stream()
-                .map(news -> new DirectNewsAnalysis(
-                        news.title(),
-                        "중립",
-                        0,
-                        1.0,
-                        0.7,
-                        1.0,
-                        "개발용 mock 분석입니다. 실제 OpenAI 호출 없이 뉴스와 종목의 관련성만 확인합니다.",
-                        "중간"
-                ))
-                .toList();
-        List<IndirectNewsAnalysis> indirectNews = newsSearchResult.indirectNews().stream()
-                .map(news -> new IndirectNewsAnalysis(
-                        news.title(),
-                        "기타",
-                        "중립",
-                        0,
-                        0.5,
-                        0.7,
-                        1.0,
-                        "개발용 mock 분석입니다. 실제 OpenAI 호출 없이 간접 영향 뉴스 흐름만 확인합니다.",
-                        "중간"
-                ))
+        List<String> referencedTitles = referencedNews(newsSearchResult).stream()
+                .map(NewsItemDto::title)
                 .toList();
 
         return new AiAnalysisResult(
                 stockName,
-                "개발용 mock 분석 결과입니다. 실제 가격 영향 가능성 판단은 OpenAI 실제 호출 모드에서 생성됩니다.",
+                "개발용 mock 분석 결과입니다. 참고 뉴스 목록과 응답 구조 확인용이며, 실제 종합 분석은 OpenAI 실제 호출 모드에서 생성됩니다.",
                 "중립",
+                0.0,
                 new PriceImpactAnalysis(
                         "판단 어려움",
                         "낮음",
                         "현재는 비용 방지를 위한 mock 모드이므로 실제 뉴스의 투자적 의미를 판단하지 않습니다."
                 ),
-                directNews,
-                indirectNews,
-                List.of(new CheckEventAnalysis(null, "실제 OpenAI 분석 모드 전환", "AI 분석 품질을 확인하려면 AI_ANALYSIS_MODE=openai로 전환해야 합니다.")),
+                List.of(
+                        new SentimentAnalysis(
+                                "호재",
+                                "mock 모드에서는 참고 뉴스의 긍정 요인을 실제로 판별하지 않습니다.",
+                                List.of("응답 구조와 참고 뉴스 링크 노출 여부를 확인합니다."),
+                                referencedTitles
+                        ),
+                        new SentimentAnalysis(
+                                "중립",
+                                "mock 모드에서는 대부분의 뉴스를 중립적 확인 대상으로 둡니다.",
+                                List.of("실제 종합 분석은 AI_ANALYSIS_MODE=openai에서 생성됩니다."),
+                                referencedTitles
+                        ),
+                        new SentimentAnalysis(
+                                "악재 가능성",
+                                "mock 모드에서는 부정 요인을 실제로 판별하지 않습니다.",
+                                List.of("운영 모드 전환 후 악재 가능성 분석 품질을 확인해야 합니다."),
+                                referencedTitles
+                        )
+                ),
+                List.of(new CheckEventAnalysis(null, "OpenAI 실제 분석 모드 전환", "AI가 참고 뉴스 기반 체크 이벤트를 생성하는지 확인해야 합니다.")),
                 CAUTION
         );
     }
@@ -167,34 +163,15 @@ public class OpenAiAnalysisService {
                 1. 직접 뉴스: 해당 종목과 직접 관련된 뉴스
                 2. 간접 영향 뉴스: 종목명이 직접 등장하지 않지만 산업, 금리, 환율, 전쟁, 정책, 경쟁사 이슈처럼 해당 종목 주가에 영향을 줄 수 있는 뉴스
 
-                각 뉴스를 분석해 다음 기준으로 정리해라.
-                - 호재 / 중립 / 악재 가능성 중 하나로 분류
-                - 왜 그렇게 판단했는지 근거 작성
-                - 가격 변동에 영향을 줄 수 있는 요인인지 판단
+                참고 뉴스 전체를 바탕으로 다음 기준으로 정리해라.
+                - 기사 하나하나를 평가하지 말고, 호재 / 중립 / 악재 가능성별 종합 분석을 작성
+                - 각 감정 그룹에는 여러 뉴스에서 공통적으로 읽히는 맥락과 핵심 근거를 요약
+                - relatedNewsTitles에는 해당 종합 분석에 실제로 참고한 뉴스 제목만 넣기
+                - checkEvents는 별도 캘린더 API가 아니라, 아래 뉴스에서 언급되었거나 뉴스 맥락상 가까운 시일 내 확인해야 할 이벤트를 AI가 도출
+                - checkEvents의 날짜를 뉴스에서 확인할 수 없으면 null로 둔다
                 - 단, 주가를 단정적으로 예측하지 말고 "영향 가능성"으로 표현
                 - 투자 추천, 매수/매도 지시는 하지 말 것
-
-                sentimentScore 기준:
-                - 호재: 1
-                - 중립: 0
-                - 악재 가능성: -1
-
-                relevance 기준:
-                - 직접 관련 뉴스: 1.0
-                - 산업 관련 뉴스: 0.7
-                - 매크로/사회 이슈: 0.5
-                - 약한 관련 이슈: 0.3
-
-                importance 기준:
-                - 높음: 1.0
-                - 중간: 0.7
-                - 낮음: 0.4
-
-                recency 기준:
-                - 오늘 뉴스: 1.0
-                - 1~2일 전 뉴스: 0.8
-                - 3~5일 전 뉴스: 0.5
-                - 일주일 이상: 0.2
+                - newsImpactScore는 리포트 전체의 뉴스 영향 방향을 -1.0부터 1.0 사이 숫자로 작성
 
                 직접 뉴스:
                 %s
@@ -207,34 +184,18 @@ public class OpenAiAnalysisService {
                   "stockName": "",
                   "briefSummary": "",
                   "overallSentiment": "호재 우세 | 중립 | 악재 리스크 존재 | 혼조",
+                  "newsImpactScore": 0.0,
                   "priceImpact": {
                     "direction": "상승 요인 우세 | 하락 리스크 존재 | 혼조 | 판단 어려움",
                     "confidence": "낮음 | 중간 | 높음",
                     "reason": ""
                   },
-                  "directNews": [
+                  "sentimentAnalyses": [
                     {
-                      "title": "",
                       "sentiment": "호재 | 중립 | 악재 가능성",
-                      "sentimentScore": 1,
-                      "relevance": 1.0,
-                      "importance": 0.7,
-                      "recency": 1.0,
-                      "reason": "",
-                      "impactLevel": "낮음 | 중간 | 높음"
-                    }
-                  ],
-                  "indirectNews": [
-                    {
-                      "title": "",
-                      "relatedFactor": "금리 | 환율 | 전쟁 | 유가 | 산업 | 경쟁사 | 정책 | 기타",
-                      "sentiment": "호재 | 중립 | 악재 가능성",
-                      "sentimentScore": 0,
-                      "relevance": 0.5,
-                      "importance": 0.7,
-                      "recency": 1.0,
-                      "reason": "",
-                      "impactLevel": "낮음 | 중간 | 높음"
+                      "summary": "",
+                      "keyPoints": ["", ""],
+                      "relatedNewsTitles": ["", ""]
                     }
                   ],
                   "checkEvents": [
@@ -270,6 +231,13 @@ public class OpenAiAnalysisService {
                     .append("   발행일: ").append(news.publishedAt()).append("\n");
         }
         return builder.toString();
+    }
+
+    private List<NewsItemDto> referencedNews(NewsSearchResult newsSearchResult) {
+        return java.util.stream.Stream.concat(
+                newsSearchResult.directNews().stream(),
+                newsSearchResult.indirectNews().stream()
+        ).toList();
     }
 
     private AiAnalysisResult parseAnalysisResult(String responseBody) {
