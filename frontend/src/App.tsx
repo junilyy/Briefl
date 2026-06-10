@@ -1,3 +1,5 @@
+import { useState } from 'react'
+import type { FormEvent } from 'react'
 import './App.css'
 
 const problemCards = [
@@ -117,7 +119,66 @@ const timelineItems = [
   },
 ]
 
+const hypothesisCards = [
+  {
+    label: 'X',
+    title: '관심 종목 뉴스 정리 수요',
+    description:
+      '사용자가 직접 뉴스를 찾아보는 시간을 줄여주는 종목 중심 브리프가 실제 문제를 해결하는지 확인합니다.',
+  },
+  {
+    label: 'Y',
+    title: '반응과 이벤트 맥락의 가치',
+    description:
+      '뉴스 요약뿐 아니라 발표 이후 시장 반응과 예정 이벤트가 함께 있을 때 더 유용하게 느끼는지 검증합니다.',
+  },
+  {
+    label: 'Z',
+    title: '출시 후 이용 의향',
+    description:
+      '무료 또는 유료 조건에서 어떤 수준의 이용 의향이 있는지 파악해 기능 우선순위와 가격 가설을 조정합니다.',
+  },
+]
+
+const initialFeedbackForm = {
+  contact: '',
+  ageGroup: '20대',
+  newsFrequency: '매일',
+  willingnessToPay: '무료면 이용',
+  advice: '',
+}
+
 function App() {
+  const [feedbackForm, setFeedbackForm] = useState(initialFeedbackForm)
+  const [formStatus, setFormStatus] = useState('')
+
+  const updateFeedbackField = (
+    field: keyof typeof initialFeedbackForm,
+    value: string,
+  ) => {
+    setFeedbackForm((current) => ({ ...current, [field]: value }))
+    setFormStatus('')
+  }
+
+  const handleFeedbackSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+
+    if (!feedbackForm.contact.trim()) {
+      setFormStatus('이메일 주소를 입력해주세요.')
+      return
+    }
+
+    if (!feedbackForm.advice.trim()) {
+      setFormStatus('서비스 개선 의견을 입력해주세요.')
+      return
+    }
+
+    setFeedbackForm(initialFeedbackForm)
+    setFormStatus(
+      '의견이 임시 접수되었습니다. 실제 저장 연동은 다음 단계에서 연결합니다.',
+    )
+  }
+
   return (
     <main className="page-shell">
       <section className="hero-section" aria-labelledby="hero-title">
@@ -365,6 +426,132 @@ function App() {
               </section>
             </div>
           </article>
+        </div>
+      </section>
+
+      <section className="section feedback-section" id="feedback" aria-labelledby="feedback-title">
+        <div className="container">
+          <div className="section-heading">
+            <span className="eyebrow">Service Feedback</span>
+            <h2 id="feedback-title">브리플 서비스 개선 의견을 받고 있습니다</h2>
+            <p>
+              실제 사용자에게 더 도움이 되는 투자 뉴스 브리프가 되려면 어떤
+              정보와 화면 구성이 필요한지 확인하고 있습니다. 아래 의견은
+              기능 우선순위와 리포트 구성 방향을 다듬는 데 활용됩니다.
+            </p>
+          </div>
+
+          <div className="feedback-layout">
+            <aside className="hypothesis-panel" aria-labelledby="hypothesis-title">
+              <h3 id="hypothesis-title">XYZ 가설을 검증합니다</h3>
+              <p>
+                브리플은 단순 관심 신청보다 구체적인 사용 맥락을 확인해
+                어떤 기능부터 만들어야 할지 판단하려고 합니다.
+              </p>
+              <div className="hypothesis-list">
+                {hypothesisCards.map((card) => (
+                  <article className="hypothesis-card" key={card.label}>
+                    <span>{card.label}</span>
+                    <div>
+                      <strong>{card.title}</strong>
+                      <p>{card.description}</p>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </aside>
+
+            <form className="feedback-form" onSubmit={handleFeedbackSubmit}>
+              <div className="form-grid">
+                <label className="form-group form-group-full">
+                  <span>이메일</span>
+                  <input
+                    type="email"
+                    value={feedbackForm.contact}
+                    placeholder="이메일 주소를 입력해주세요"
+                    onChange={(event) =>
+                      updateFeedbackField('contact', event.target.value)
+                    }
+                  />
+                  <small>후속 안내와 의견 확인 목적으로만 활용됩니다.</small>
+                </label>
+
+                <label className="form-group">
+                  <span>연령대</span>
+                  <select
+                    value={feedbackForm.ageGroup}
+                    onChange={(event) =>
+                      updateFeedbackField('ageGroup', event.target.value)
+                    }
+                  >
+                    <option value="10대">10대</option>
+                    <option value="20대">20대</option>
+                    <option value="30대">30대</option>
+                    <option value="40대">40대</option>
+                    <option value="50대 이상">50대 이상</option>
+                  </select>
+                </label>
+
+                <label className="form-group">
+                  <span>투자 관련 뉴스 확인 빈도</span>
+                  <select
+                    value={feedbackForm.newsFrequency}
+                    onChange={(event) =>
+                      updateFeedbackField('newsFrequency', event.target.value)
+                    }
+                  >
+                    <option value="매일">매일</option>
+                    <option value="주 2~3회">주 2~3회</option>
+                    <option value="가끔">가끔</option>
+                    <option value="거의 안 봄">거의 안 봄</option>
+                  </select>
+                </label>
+
+                <label className="form-group form-group-full">
+                  <span>정식 출시 시 월 이용 의향</span>
+                  <select
+                    value={feedbackForm.willingnessToPay}
+                    onChange={(event) =>
+                      updateFeedbackField('willingnessToPay', event.target.value)
+                    }
+                  >
+                    <option value="무료면 이용">무료면 이용</option>
+                    <option value="만원대 이하">만원대 이하</option>
+                    <option value="만원대">만원대</option>
+                    <option value="2만원대">2만원대</option>
+                    <option value="3만원 이상">3만원 이상</option>
+                  </select>
+                </label>
+
+                <label className="form-group form-group-full">
+                  <span>서비스 개선 의견</span>
+                  <textarea
+                    value={feedbackForm.advice}
+                    placeholder="브리플을 보며 느낀 점이나 개선 의견을 자유롭게 남겨주세요"
+                    onChange={(event) =>
+                      updateFeedbackField('advice', event.target.value)
+                    }
+                  />
+                </label>
+              </div>
+
+              <div className="submit-row">
+                <p>
+                  현재 화면에서는 실제 저장 없이 입력 흐름만 확인합니다. 저장
+                  연동은 Google Apps Script로 별도 연결할 예정입니다.
+                </p>
+                <button className="primary-button" type="submit">
+                  의견 제출하기
+                </button>
+              </div>
+
+              {formStatus && (
+                <p className="form-status" role="status">
+                  {formStatus}
+                </p>
+              )}
+            </form>
+          </div>
         </div>
       </section>
     </main>
