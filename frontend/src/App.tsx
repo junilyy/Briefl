@@ -60,6 +60,63 @@ const heroSignals = [
   },
 ]
 
+const reportStats = [
+  { label: '호재 이슈', value: '1' },
+  { label: '중립 이슈', value: '1' },
+  { label: '부담 요인 후보', value: '1' },
+]
+
+const reactionItems = [
+  { label: '장중 반응', value: '+1.8%', tone: 'up' },
+  { label: '거래대금', value: '평균 대비 1.3배', tone: 'flat' },
+  { label: '외국인 수급', value: '순매수 우위', tone: 'up' },
+]
+
+const reportFeed = [
+  {
+    tone: 'good',
+    label: '호재',
+    title: '반도체 업황 회복 기대',
+    description:
+      '산업 수요 회복 관련 기사들이 이어지며 해당 종목에 긍정적으로 읽힐 수 있는 배경 뉴스로 정리됩니다.',
+  },
+  {
+    tone: 'neutral',
+    label: '중립',
+    title: '환율 변동성 확대',
+    description:
+      '직접적인 영향 방향을 단정하기 어렵고 추가 해석이 필요한 거시 변수는 중립으로 표시해 구분합니다.',
+  },
+  {
+    tone: 'bad',
+    label: '악재 가능성',
+    title: '경쟁사 신제품 출시',
+    description:
+      '경쟁 환경 변화가 예상될 때는 부정적 가능성 이슈로 표기하되 확정적인 판단처럼 보이지 않도록 맥락 중심으로 설명합니다.',
+  },
+]
+
+const timelineItems = [
+  {
+    date: '04/28',
+    title: '미국 주요 정책 발언 예정',
+    description:
+      '시장 전반 변동성과 반도체 섹터 심리에 영향을 줄 수 있는 매크로 이벤트 예시입니다.',
+  },
+  {
+    date: '04/30',
+    title: '글로벌 빅테크 실적 발표 집중',
+    description:
+      '관련 기업의 가이던스와 업황 코멘트가 섹터 뉴스 해석에 영향을 줄 수 있습니다.',
+  },
+  {
+    date: '05/02',
+    title: '반도체 장비 업계 컨퍼런스',
+    description:
+      '공급망과 수요 전망 관련 발언이 이어질 경우 관련 종목 브리프에 반영될 수 있습니다.',
+  },
+]
+
 function App() {
   return (
     <main className="page-shell">
@@ -94,8 +151,8 @@ function App() {
                 <a className="primary-button" href="#solution">
                   서비스 흐름 보기
                 </a>
-                <a className="secondary-button" href="#problem">
-                  문제 확인하기
+                <a className="secondary-button" href="#example-report">
+                  예시 리포트 보기
                 </a>
               </div>
 
@@ -205,6 +262,109 @@ function App() {
               </div>
             </aside>
           </div>
+        </div>
+      </section>
+
+      <section
+        className="section report-section"
+        id="example-report"
+        aria-labelledby="report-title"
+      >
+        <div className="container">
+          <div className="section-heading">
+            <span className="eyebrow">Example Report</span>
+            <h2 id="report-title">이런 형태의 리포트를 제공할 예정입니다</h2>
+            <p>
+              아래 화면은 실제 투자 조언이 아닌 예시 리포트입니다. 브리플이
+              어떤 방식으로 뉴스, 반응, 이벤트를 함께 정리할지 보여주는
+              샘플입니다.
+            </p>
+          </div>
+
+          <article className="report-card" aria-label="삼성전자 브리프 예시">
+            <div className="report-top">
+              <div>
+                <span className="preview-badge">BRIEFL Sample</span>
+                <h3>삼성전자 브리프 예시</h3>
+                <p>
+                  경제 뉴스, 산업 뉴스, 기업 관련 이슈와 발표 이후 반응,
+                  예정 이벤트를 함께 정리한 예시 화면입니다.
+                </p>
+              </div>
+              <span className="example-label">예시 리포트입니다</span>
+            </div>
+
+            <div className="report-grid">
+              <section className="report-summary" aria-labelledby="summary-title">
+                <span className="report-chip">오늘의 브리프</span>
+                <h4 id="summary-title">한눈에 보는 핵심 변화</h4>
+                <p>
+                  기사 제목만 모아두지 않고 오늘의 핵심 뉴스와 관찰된 반응,
+                  곧 확인해야 할 이벤트를 한 번에 요약하는 구조를 목표로 합니다.
+                </p>
+
+                <div className="summary-stats" aria-label="뉴스 분류 요약">
+                  {reportStats.map((stat) => (
+                    <div className="summary-stat" key={stat.label}>
+                      <strong>{stat.value}</strong>
+                      <span>{stat.label}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="summary-report">
+                  <strong>오늘의 요약 문장</strong>
+                  <p>
+                    반도체 업황 회복 기대가 긍정적으로 언급된 가운데, 환율
+                    변수는 중립으로 분류되었고 경쟁사 신제품 이슈는 점검이
+                    필요한 부담 요인 후보로 정리되었습니다.
+                  </p>
+                </div>
+
+                <div className="reaction-strip">
+                  <strong>뉴스 발표 이후 관찰된 반응</strong>
+                  <div className="reaction-grid">
+                    {reactionItems.map((item) => (
+                      <div className="reaction-item" key={item.label}>
+                        <span>{item.label}</span>
+                        <b className={item.tone}>{item.value}</b>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </section>
+
+              <section className="report-feed" aria-labelledby="feed-title">
+                <h4 id="feed-title">세부 뉴스 정리</h4>
+                {reportFeed.map((item) => (
+                  <article className="feed-item" key={item.title}>
+                    <span className={`signal-badge ${item.tone}`}>{item.label}</span>
+                    <strong>{item.title}</strong>
+                    <p>{item.description}</p>
+                  </article>
+                ))}
+
+                <div className="event-timeline">
+                  <h5>다가오는 체크 이벤트</h5>
+                  <p>
+                    주가 변동 가능성을 높일 수 있는 일정은 뉴스와 분리해서
+                    시간순으로 보여주는 형태를 가정했습니다.
+                  </p>
+                  <div className="timeline-list">
+                    {timelineItems.map((item) => (
+                      <div className="timeline-row" key={item.date}>
+                        <em>{item.date}</em>
+                        <div>
+                          <span>{item.title}</span>
+                          <small>{item.description}</small>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </section>
+            </div>
+          </article>
         </div>
       </section>
     </main>
