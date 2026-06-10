@@ -1,4 +1,4 @@
-package com.briefl.config;
+package com.briefl.global.config;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Info;

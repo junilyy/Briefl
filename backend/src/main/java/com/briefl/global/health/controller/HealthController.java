@@ -1,4 +1,4 @@
-package com.briefl.controller;
+package com.briefl.global.health.controller;
 
 import java.util.Map;
 

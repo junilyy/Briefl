@@ -1,6 +1,6 @@
-package com.briefl.exception;
+package com.briefl.global.exception;
 
-import com.briefl.common.ApiResponse;
+import com.briefl.global.apiPayload.ApiResponse;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import java.util.LinkedHashMap;

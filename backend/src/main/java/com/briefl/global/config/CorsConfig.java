@@ -1,4 +1,4 @@
-package com.briefl.config;
+package com.briefl.global.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
