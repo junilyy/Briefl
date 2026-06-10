@@ -39,5 +39,12 @@ openai:
   responses-url: https://api.openai.com/v1/responses
   max-output-tokens: ${OPENAI_MAX_OUTPUT_TOKENS:2000}
 
+external-api:
+  timeout:
+    connect-millis: ${EXTERNAL_API_CONNECT_TIMEOUT_MILLIS:3000}
+    response-seconds: ${EXTERNAL_API_RESPONSE_TIMEOUT_SECONDS:10}
+    naver-request-seconds: ${NAVER_API_REQUEST_TIMEOUT_SECONDS:10}
+    open-ai-request-seconds: ${OPENAI_API_REQUEST_TIMEOUT_SECONDS:30}
+
 server:
   port: 8080

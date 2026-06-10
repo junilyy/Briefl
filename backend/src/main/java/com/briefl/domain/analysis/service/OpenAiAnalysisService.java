@@ -7,13 +7,14 @@ import com.briefl.domain.analysis.dto.IndirectNewsAnalysis;
 import com.briefl.domain.analysis.dto.PriceImpactAnalysis;
 import com.briefl.domain.news.dto.NewsItemDto;
 import com.briefl.domain.news.dto.NewsSearchResult;
+import com.briefl.global.config.ExternalApiProperties;
 import com.briefl.global.config.OpenAiProperties;
 import com.briefl.global.exception.AiAnalysisException;
 import com.briefl.global.exception.ErrorCode;
+import com.briefl.global.exception.ExternalApiExceptionUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientRequestException;
 
 @Slf4j
 @Service
@@ -31,6 +33,7 @@ public class OpenAiAnalysisService {
     private static final String CAUTION = "본 리포트는 투자 판단을 보조하기 위한 정보 정리이며, 매수·매도 추천이 아닙니다.";
 
     private final OpenAiProperties openAiProperties;
+    private final ExternalApiProperties externalApiProperties;
     private final WebClient.Builder webClientBuilder;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -110,10 +113,18 @@ public class OpenAiAnalysisService {
                                         return new AiAnalysisException(ErrorCode.EXTERNAL_API_ERROR, "OpenAI API 호출에 실패했습니다.");
                                     }))
                     .bodyToMono(String.class)
-                    .block(Duration.ofSeconds(30));
+                    .block(externalApiProperties.openAiRequestTimeout());
+        } catch (WebClientRequestException exception) {
+            if (ExternalApiExceptionUtils.isTimeout(exception)) {
+                throw new AiAnalysisException(ErrorCode.EXTERNAL_API_TIMEOUT, "OpenAI API 응답 시간이 초과되었습니다.");
+            }
+            throw new AiAnalysisException(ErrorCode.EXTERNAL_API_ERROR, "OpenAI API 연결에 실패했습니다.");
         } catch (RuntimeException exception) {
             if (exception instanceof AiAnalysisException aiAnalysisException) {
                 throw aiAnalysisException;
+            }
+            if (ExternalApiExceptionUtils.isTimeout(exception)) {
+                throw new AiAnalysisException(ErrorCode.EXTERNAL_API_TIMEOUT, "OpenAI API 응답 시간이 초과되었습니다.");
             }
             throw new AiAnalysisException(ErrorCode.EXTERNAL_API_ERROR, "OpenAI API 호출 중 오류가 발생했습니다.");
         }

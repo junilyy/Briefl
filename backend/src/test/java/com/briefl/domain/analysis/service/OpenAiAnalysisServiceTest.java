@@ -7,8 +7,10 @@ import com.briefl.domain.analysis.dto.AiAnalysisResult;
 import com.briefl.domain.news.dto.NewsItemDto;
 import com.briefl.domain.news.dto.NewsSearchResult;
 import com.briefl.domain.news.dto.NewsType;
+import com.briefl.global.config.ExternalApiProperties;
 import com.briefl.global.config.OpenAiProperties;
 import com.briefl.global.exception.AiAnalysisException;
+import com.briefl.global.exception.ErrorCode;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -23,6 +25,7 @@ class OpenAiAnalysisServiceTest {
                 .exchangeFunction(request -> Mono.error(new AssertionError("OpenAI API must not be called in mock mode.")));
         OpenAiAnalysisService service = new OpenAiAnalysisService(
                 new OpenAiProperties("", "mock", "gpt-5.4-nano", "https://api.openai.com/v1/responses", 2000),
+                externalApiProperties(),
                 failingWebClientBuilder
         );
 
@@ -38,12 +41,18 @@ class OpenAiAnalysisServiceTest {
     void analyzeThrowsWhenOpenAiModeHasNoApiKey() {
         OpenAiAnalysisService service = new OpenAiAnalysisService(
                 new OpenAiProperties("", "openai", "gpt-5.4-nano", "https://api.openai.com/v1/responses", 2000),
+                externalApiProperties(),
                 WebClient.builder()
         );
 
         assertThatThrownBy(() -> service.analyze("삼성전자", sampleNewsSearchResult()))
                 .isInstanceOf(AiAnalysisException.class)
-                .hasMessage("외부 API 인증 정보가 설정되지 않았습니다.");
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.EXTERNAL_API_AUTH_MISSING);
+    }
+
+    private ExternalApiProperties externalApiProperties() {
+        return new ExternalApiProperties(new ExternalApiProperties.Timeout(3000, 10, 10, 30));
     }
 
     private NewsSearchResult sampleNewsSearchResult() {
