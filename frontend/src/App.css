@@ -4,7 +4,7 @@
 }
 
 .container {
-  width: min(1560px, calc(100% - 40px));
+  width: min(1280px, calc(100% - 40px));
   margin: 0 auto;
 }
 
@@ -110,9 +110,9 @@
 
 .control-panel {
   display: grid;
-  grid-template-columns: minmax(340px, 0.82fr) minmax(520px, 1.18fr);
-  gap: 28px;
-  align-items: end;
+  grid-template-columns: minmax(340px, 0.95fr) minmax(420px, 1.05fr);
+  gap: 24px;
+  align-items: center;
   padding: 28px;
 }
 
@@ -132,7 +132,7 @@
 
 .control-actions {
   display: grid;
-  grid-template-columns: minmax(240px, 1fr) auto;
+  grid-template-columns: minmax(240px, 1fr) minmax(330px, 0.9fr);
   gap: 14px;
   align-items: end;
 }
@@ -226,6 +226,7 @@
 
 .status-box {
   grid-column: 1 / -1;
+  margin-top: 2px;
   border: 1px solid rgba(37, 99, 235, 0.14);
   background: rgba(239, 246, 255, 0.9);
   color: var(--color-primary);
@@ -241,7 +242,6 @@
 .notice-box,
 .caution-box {
   grid-column: 1 / -1;
-  margin: 0;
   border: 1px solid rgba(15, 23, 42, 0.08);
   background: rgba(248, 250, 252, 0.92);
   color: var(--color-muted);
@@ -442,7 +442,7 @@
 
 .analysis-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(260px, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
 }
 
