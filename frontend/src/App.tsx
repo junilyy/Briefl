@@ -382,7 +382,7 @@ function ReferencedNewsList({ items }: { items: ReportReferencedNews[] }) {
     <section className="news-panel" aria-label="참고 뉴스">
       <div className="section-title-row">
         <h3>참고 뉴스</h3>
-        <span>{items.length}건</span>
+        <span>{items.length}건 · 옆으로 넘겨 보기</span>
       </div>
       {items.length > 0 ? (
         <div className="news-list">
