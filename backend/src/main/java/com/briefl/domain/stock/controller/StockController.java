@@ -3,6 +3,7 @@ package com.briefl.domain.stock.controller;
 import com.briefl.domain.stock.dto.StockResponse;
 import com.briefl.domain.stock.service.StockService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ public class StockController {
     private final StockService stockService;
 
     @Operation(summary = "지원 종목 목록 조회", description = "BRIEFL MVP에서 지원하는 관심 종목 목록을 조회합니다.")
+    @ApiResponse(responseCode = "200", description = "지원 종목 목록 조회 성공")
     @GetMapping
     public List<StockResponse> getStocks() {
         return stockService.getStocks();
