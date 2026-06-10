@@ -32,5 +32,12 @@ naver:
   client-secret: ${NAVER_CLIENT_SECRET:}
   news-search-url: https://openapi.naver.com/v1/search/news.json
 
+openai:
+  api-key: ${OPENAI_API_KEY:}
+  analysis-mode: ${AI_ANALYSIS_MODE:mock}
+  model: ${OPENAI_MODEL:gpt-5.4-nano}
+  responses-url: https://api.openai.com/v1/responses
+  max-output-tokens: ${OPENAI_MAX_OUTPUT_TOKENS:2000}
+
 server:
   port: 8080
