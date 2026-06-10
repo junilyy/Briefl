@@ -61,6 +61,10 @@ function eventDateLabel(value: string | null) {
   return value?.trim() || '일정 미정'
 }
 
+function faviconUrl(source: string) {
+  return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(source)}&sz=96`
+}
+
 function App() {
   const [stocks, setStocks] = useState<Stock[]>([])
   const [selectedStock, setSelectedStock] = useState('')
@@ -311,10 +315,13 @@ function ReportDashboard({
                 )}
                 {analysis.relatedNewsTitles.length > 0 && (
                   <div className="related-news">
-                    <strong>관련 참고 뉴스</strong>
-                    {analysis.relatedNewsTitles.map((title) => (
+                    <strong>관련 참고 뉴스 {analysis.relatedNewsTitles.length}건</strong>
+                    {analysis.relatedNewsTitles.slice(0, 3).map((title) => (
                       <span key={title}>{title}</span>
                     ))}
+                    {analysis.relatedNewsTitles.length > 3 && (
+                      <em>외 {analysis.relatedNewsTitles.length - 3}건</em>
+                    )}
                   </div>
                 )}
               </article>
@@ -381,6 +388,9 @@ function ReferencedNewsList({ items }: { items: ReportReferencedNews[] }) {
         <div className="news-list">
           {items.map((item) => (
             <article className="news-item" key={`${item.title}-${item.url}`}>
+              <div className="news-thumb" aria-hidden="true">
+                <img src={faviconUrl(item.source)} alt="" loading="lazy" />
+              </div>
               <div className="news-item-top">
                 <span className="signal-badge neutral">
                   {newsTypeLabels[item.newsType] ?? item.newsType}

@@ -503,11 +503,17 @@
   font-size: 12px;
 }
 
-.related-news span {
+.related-news span,
+.related-news em {
   color: var(--color-subtle);
   font-size: 12px;
   font-weight: 700;
   line-height: 1.45;
+}
+
+.related-news em {
+  font-style: normal;
+  color: var(--color-primary);
 }
 
 .price-impact div {
@@ -539,15 +545,44 @@
 }
 
 .news-list {
-  display: grid;
-  gap: 12px;
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  padding: 2px 2px 12px;
+  scrollbar-color: rgba(37, 99, 235, 0.26) transparent;
 }
 
 .news-item {
+  flex: 0 0 min(330px, 82vw);
+  scroll-snap-align: start;
+  display: grid;
+  grid-template-rows: auto auto auto 1fr;
+  min-height: 250px;
   padding: 16px;
   border: 1px solid rgba(15, 23, 42, 0.06);
   border-radius: 18px;
   background: #fff;
+}
+
+.news-thumb {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  margin-bottom: 14px;
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(18, 58, 114, 0.08), rgba(37, 99, 235, 0.1)),
+    #f8fafc;
+  border: 1px solid rgba(37, 99, 235, 0.1);
+}
+
+.news-thumb img {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
 }
 
 .news-item-top {
@@ -567,6 +602,7 @@
 
 .news-item a {
   display: block;
+  min-height: 70px;
   color: var(--color-text);
   font-size: 16px;
   font-weight: 800;
