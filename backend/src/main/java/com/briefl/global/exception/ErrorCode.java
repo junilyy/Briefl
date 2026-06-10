@@ -13,6 +13,7 @@ public enum ErrorCode {
     REPORT_NOT_FOUND(HttpStatus.NOT_FOUND, "REPORT404", "오늘 생성된 리포트가 없습니다."),
     EXTERNAL_API_AUTH_MISSING(HttpStatus.INTERNAL_SERVER_ERROR, "EXTERNAL500_AUTH", "외부 API 인증 정보가 설정되지 않았습니다."),
     EXTERNAL_API_ERROR(HttpStatus.BAD_GATEWAY, "EXTERNAL502", "외부 API 호출에 실패했습니다."),
+    EXTERNAL_API_TIMEOUT(HttpStatus.GATEWAY_TIMEOUT, "EXTERNAL504_TIMEOUT", "외부 API 응답 시간이 초과되었습니다."),
     AI_ANALYSIS_PARSE_ERROR(HttpStatus.BAD_GATEWAY, "AI502_PARSE", "AI 분석 응답을 해석하지 못했습니다."),
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "COMMON500", "서버 에러가 발생했습니다.");
 

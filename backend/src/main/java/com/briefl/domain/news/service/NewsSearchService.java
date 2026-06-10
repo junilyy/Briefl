@@ -6,14 +6,15 @@ import com.briefl.domain.news.dto.NewsItemDto;
 import com.briefl.domain.news.dto.NewsSearchResult;
 import com.briefl.domain.news.dto.NewsType;
 import com.briefl.domain.stock.entity.Stock;
+import com.briefl.global.config.ExternalApiProperties;
 import com.briefl.global.config.NaverProperties;
 import com.briefl.global.exception.ErrorCode;
 import com.briefl.global.exception.ExternalApiException;
+import com.briefl.global.exception.ExternalApiExceptionUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URI;
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -32,6 +33,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientRequestException;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.springframework.web.util.HtmlUtils;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -49,6 +51,7 @@ public class NewsSearchService {
     };
 
     private final NaverProperties naverProperties;
+    private final ExternalApiProperties externalApiProperties;
     private final WebClient.Builder webClientBuilder;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -124,7 +127,7 @@ public class NewsSearchService {
                                             "네이버 뉴스 검색 API 호출에 실패했습니다."
                                     )))
                     .bodyToMono(NaverNewsSearchResponse.class)
-                    .block(Duration.ofSeconds(10));
+                    .block(externalApiProperties.naverRequestTimeout());
 
             if (response == null || response.items() == null) {
                 return List.of();
@@ -134,11 +137,19 @@ public class NewsSearchService {
                     .filter(Objects::nonNull)
                     .map(item -> toNewsItem(item, newsType))
                     .toList();
+        } catch (WebClientRequestException exception) {
+            if (ExternalApiExceptionUtils.isTimeout(exception)) {
+                throw new ExternalApiException(ErrorCode.EXTERNAL_API_TIMEOUT, "네이버 뉴스 검색 API 응답 시간이 초과되었습니다.");
+            }
+            throw new ExternalApiException(ErrorCode.EXTERNAL_API_ERROR, "네이버 뉴스 검색 API 연결에 실패했습니다.");
         } catch (WebClientResponseException exception) {
             throw new ExternalApiException(ErrorCode.EXTERNAL_API_ERROR, "네이버 뉴스 검색 API 응답 처리에 실패했습니다.");
         } catch (RuntimeException exception) {
             if (exception instanceof ExternalApiException externalApiException) {
                 throw externalApiException;
+            }
+            if (ExternalApiExceptionUtils.isTimeout(exception)) {
+                throw new ExternalApiException(ErrorCode.EXTERNAL_API_TIMEOUT, "네이버 뉴스 검색 API 응답 시간이 초과되었습니다.");
             }
             throw new ExternalApiException(ErrorCode.EXTERNAL_API_ERROR, "네이버 뉴스 검색 API 호출 중 오류가 발생했습니다.");
         }
