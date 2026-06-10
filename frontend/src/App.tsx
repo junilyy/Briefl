@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createReport, getStocks, getTodayReport } from './api'
-import type { Report, ReportIndirectNewsItem, ReportNewsItem, Stock } from './types'
+import type { Report, ReportReferencedNews, Stock } from './types'
 import './App.css'
 
 type LoadState = 'idle' | 'loading' | 'success' | 'error'
@@ -24,6 +24,11 @@ const confidenceLabels: Record<string, string> = {
   LOW: '낮음',
 }
 
+const newsTypeLabels: Record<string, string> = {
+  DIRECT: '직접 뉴스',
+  INDIRECT: '간접 영향 뉴스',
+}
+
 function formatDateTime(value: string) {
   if (!value) {
     return '시간 정보 없음'
@@ -38,6 +43,22 @@ function formatScore(value: number | undefined) {
   }
 
   return value.toFixed(1)
+}
+
+function sentimentTone(value: string) {
+  if (value.includes('호재') || value === 'POSITIVE') {
+    return 'positive'
+  }
+
+  if (value.includes('악재') || value === 'NEGATIVE') {
+    return 'negative'
+  }
+
+  return 'neutral'
+}
+
+function eventDateLabel(value: string | null) {
+  return value?.trim() || '일정 미정'
 }
 
 function App() {
@@ -136,7 +157,7 @@ function App() {
               <h1 id="page-title">관심 종목 뉴스 리포트를 바로 생성합니다</h1>
               <p>
                 백엔드의 지원 종목 API와 리포트 생성 API를 호출해 오늘의 뉴스
-                요약, 감성 분류, 가격 영향 가능성, 체크 이벤트를 화면에
+                요약, 종합 분석, 가격 영향 가능성, 체크 이벤트를 화면에
                 표시합니다.
               </p>
 
@@ -219,7 +240,7 @@ function ReportDashboard({
       <section className="report-dashboard loading-panel" aria-live="polite">
         <div className="loading-spinner" aria-hidden="true" />
         <h2>뉴스를 수집하고 리포트를 생성하는 중입니다</h2>
-        <p>Naver News 검색, AI 분석, 영향 점수 계산을 순서대로 실행합니다.</p>
+        <p>Naver News 검색과 AI 종합 분석을 순서대로 실행합니다.</p>
       </section>
     )
   }
@@ -235,10 +256,9 @@ function ReportDashboard({
         </p>
         <div className="empty-grid" aria-label="표시 예정 데이터">
           <span>요약</span>
-          <span>호재/중립/악재</span>
-          <span>직접 뉴스</span>
-          <span>간접 뉴스</span>
-          <span>체크 이벤트</span>
+          <span>종합 분석</span>
+          <span>참고 뉴스</span>
+          <span>AI 체크 이벤트</span>
           <span>주의 문구</span>
         </div>
       </section>
@@ -260,17 +280,50 @@ function ReportDashboard({
       </div>
 
       <div className="summary-card">
-        <span className={`sentiment-pill ${report.overallSentiment.toLowerCase()}`}>
+        <span className={`sentiment-pill ${sentimentTone(report.overallSentiment)}`}>
           {sentimentLabels[report.overallSentiment] ?? report.overallSentiment}
         </span>
         <p>{report.briefSummary}</p>
       </div>
 
-      <div className="metric-grid">
-        <MetricCard label="호재" value={report.counts.positive} tone="positive" />
-        <MetricCard label="중립" value={report.counts.neutral} tone="neutral" />
-        <MetricCard label="악재" value={report.counts.negative} tone="negative" />
-      </div>
+      <section className="analysis-panel" aria-label="호재 중립 악재 종합 분석">
+        <div className="section-title-row">
+          <h3>AI 종합 분석</h3>
+          <span>기사별 평가가 아닌 참고 뉴스 기반 요약</span>
+        </div>
+        {report.sentimentAnalyses.length > 0 ? (
+          <div className="analysis-grid">
+            {report.sentimentAnalyses.map((analysis) => (
+              <article
+                className={`analysis-card ${sentimentTone(analysis.sentiment)}`}
+                key={analysis.sentiment}
+              >
+                <span className={`sentiment-pill ${sentimentTone(analysis.sentiment)}`}>
+                  {sentimentLabels[analysis.sentiment] ?? analysis.sentiment}
+                </span>
+                <p>{analysis.summary}</p>
+                {analysis.keyPoints.length > 0 && (
+                  <ul>
+                    {analysis.keyPoints.map((point) => (
+                      <li key={point}>{point}</li>
+                    ))}
+                  </ul>
+                )}
+                {analysis.relatedNewsTitles.length > 0 && (
+                  <div className="related-news">
+                    <strong>관련 참고 뉴스</strong>
+                    {analysis.relatedNewsTitles.map((title) => (
+                      <span key={title}>{title}</span>
+                    ))}
+                  </div>
+                )}
+              </article>
+            ))}
+          </div>
+        ) : (
+          <p className="empty-copy">표시할 종합 분석이 없습니다.</p>
+        )}
+      </section>
 
       <section className="price-impact" aria-label="가격 영향 가능성">
         <h3>가격 영향 가능성</h3>
@@ -288,18 +341,18 @@ function ReportDashboard({
         <p>{report.priceImpact.reason}</p>
       </section>
 
-      <div className="news-columns">
-        <NewsList title="직접 뉴스" items={report.directNews} />
-        <NewsList title="간접 뉴스" items={report.indirectNews} />
-      </div>
+      <ReferencedNewsList items={report.referencedNews} />
 
       <section className="events-panel" aria-label="체크 이벤트">
-        <h3>체크 이벤트</h3>
+        <div className="section-title-row dark">
+          <h3>AI 체크 이벤트</h3>
+          <span>참고 뉴스 맥락에서 도출</span>
+        </div>
         {report.checkEvents.length > 0 ? (
           <div className="event-list">
             {report.checkEvents.map((event) => (
               <article className="event-item" key={`${event.date}-${event.event}`}>
-                <time>{event.date}</time>
+                <time>{eventDateLabel(event.date)}</time>
                 <div>
                   <strong>{event.event}</strong>
                   <p>{event.whyImportant}</p>
@@ -317,55 +370,27 @@ function ReportDashboard({
   )
 }
 
-function MetricCard({
-  label,
-  value,
-  tone,
-}: {
-  label: string
-  value: number
-  tone: 'positive' | 'neutral' | 'negative'
-}) {
+function ReferencedNewsList({ items }: { items: ReportReferencedNews[] }) {
   return (
-    <div className={`metric-card ${tone}`}>
-      <span>{label}</span>
-      <strong>{value}</strong>
-    </div>
-  )
-}
-
-function NewsList({
-  title,
-  items,
-}: {
-  title: string
-  items: Array<ReportNewsItem | ReportIndirectNewsItem>
-}) {
-  return (
-    <section className="news-panel" aria-label={title}>
-      <h3>{title}</h3>
+    <section className="news-panel" aria-label="참고 뉴스">
+      <div className="section-title-row">
+        <h3>참고 뉴스</h3>
+        <span>{items.length}건</span>
+      </div>
       {items.length > 0 ? (
         <div className="news-list">
           {items.map((item) => (
             <article className="news-item" key={`${item.title}-${item.url}`}>
               <div className="news-item-top">
-                <span className={`signal-badge ${item.sentiment.toLowerCase()}`}>
-                  {sentimentLabels[item.sentiment] ?? item.sentiment}
+                <span className="signal-badge neutral">
+                  {newsTypeLabels[item.newsType] ?? item.newsType}
                 </span>
                 <span>{formatDateTime(item.publishedAt)}</span>
               </div>
               <a href={item.url} target="_blank" rel="noreferrer">
                 {item.title}
               </a>
-              {'relatedFactor' in item && (
-                <small>연관 요인: {item.relatedFactor}</small>
-              )}
-              <p>{item.reason}</p>
-              <div className="score-row">
-                <span>영향 {formatScore(item.impactScore)}</span>
-                <span>관련도 {formatScore(item.relevance)}</span>
-                <span>중요도 {formatScore(item.importance)}</span>
-              </div>
+              <small>{item.source}</small>
             </article>
           ))}
         </div>

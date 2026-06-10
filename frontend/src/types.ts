@@ -10,32 +10,23 @@ export type ReportPriceImpact = {
   reason: string
 }
 
-export type ReportCounts = {
-  positive: number
-  neutral: number
-  negative: number
-}
-
-export type ReportNewsItem = {
+export type ReportReferencedNews = {
   title: string
   url: string
   source: string
   publishedAt: string
-  sentiment: string
-  sentimentScore: number
-  relevance: number
-  importance: number
-  recency: number
-  impactScore: number
-  reason: string
+  newsType: string
 }
 
-export type ReportIndirectNewsItem = ReportNewsItem & {
-  relatedFactor: string
+export type ReportSentimentAnalysis = {
+  sentiment: string
+  summary: string
+  keyPoints: string[]
+  relatedNewsTitles: string[]
 }
 
 export type ReportCheckEvent = {
-  date: string
+  date: string | null
   event: string
   whyImportant: string
 }
@@ -48,9 +39,8 @@ export type Report = {
   overallSentiment: string
   newsImpactScore: number
   priceImpact: ReportPriceImpact
-  counts: ReportCounts
-  directNews: ReportNewsItem[]
-  indirectNews: ReportIndirectNewsItem[]
+  referencedNews: ReportReferencedNews[]
+  sentimentAnalyses: ReportSentimentAnalysis[]
   checkEvents: ReportCheckEvent[]
   caution: string
 }
