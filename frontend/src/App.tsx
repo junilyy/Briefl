@@ -148,6 +148,24 @@ const initialFeedbackForm = {
   advice: '',
 }
 
+const faqItems = [
+  {
+    question: 'Q1. 투자 종목을 추천해주나요?',
+    answer:
+      '아니요. 브리플은 매수/매도 추천이 아닌 관심 종목 관련 뉴스 요약 및 정보 정리 서비스입니다.',
+  },
+  {
+    question: 'Q2. 리포트는 어떻게 제공되나요?',
+    answer:
+      '예시 리포트와 사용자 의견을 바탕으로 뉴스 요약, 반응 흐름, 예정 이벤트를 함께 보여주는 브리프 형태를 다듬을 계획입니다.',
+  },
+  {
+    question: 'Q3. 남긴 의견은 어디에 활용되나요?',
+    answer:
+      '연령대, 뉴스 확인 빈도, 이용 의향, 자유 의견을 바탕으로 기능 우선순위와 리포트 구성 방향을 정하는 데 활용됩니다.',
+  },
+]
+
 function App() {
   const [feedbackForm, setFeedbackForm] = useState(initialFeedbackForm)
   const [formStatus, setFormStatus] = useState('')
@@ -193,7 +211,12 @@ function App() {
                 <span className="brand-subtitle">브리플</span>
               </span>
             </a>
-            <span className="nav-chip">AI 투자 뉴스 브리프 서비스</span>
+            <div className="nav-links">
+              <a href="#problem">문제</a>
+              <a href="#solution">해결</a>
+              <a href="#example-report">예시 리포트</a>
+              <a href="#feedback">의견</a>
+            </div>
           </nav>
 
           <div className="hero-layout">
@@ -209,8 +232,8 @@ function App() {
               </p>
 
               <div className="hero-actions" aria-label="주요 이동">
-                <a className="primary-button" href="#solution">
-                  서비스 흐름 보기
+                <a className="primary-button" href="#feedback">
+                  의견 남기기
                 </a>
                 <a className="secondary-button" href="#example-report">
                   예시 리포트 보기
@@ -554,6 +577,42 @@ function App() {
           </div>
         </div>
       </section>
+
+      <section className="section faq-section" aria-labelledby="faq-title">
+        <div className="container">
+          <div className="section-heading">
+            <span className="eyebrow">FAQ</span>
+            <h2 id="faq-title">자주 묻는 질문</h2>
+            <p>
+              브리플은 서비스 방향을 점검하고 개선 의견을 받기 위한 초기
+              페이지입니다. 아래 내용을 통해 서비스 경계를 간단히 확인할 수
+              있습니다.
+            </p>
+          </div>
+
+          <div className="faq-list">
+            {faqItems.map((item) => (
+              <article className="faq-item" key={item.question}>
+                <h3>{item.question}</h3>
+                <p>{item.answer}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <footer className="page-footer">
+        <div className="container footer-inner">
+          <span>
+            본 페이지는 AI 관심 종목 뉴스 리포트 서비스의 초기 방향 점검 및
+            개선 의견 접수를 위한 페이지입니다.
+          </span>
+          <span>
+            투자 판단과 실행의 책임은 사용자 본인에게 있으며, 브리플은 투자
+            자문을 제공하지 않습니다.
+          </span>
+        </div>
+      </footer>
     </main>
   )
 }
