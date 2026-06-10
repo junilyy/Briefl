@@ -32,9 +32,13 @@ class OpenAiAnalysisServiceTest {
         AiAnalysisResult result = service.analyze("삼성전자", sampleNewsSearchResult());
 
         assertThat(result.stockName()).isEqualTo("삼성전자");
-        assertThat(result.overallSentiment()).isEqualTo("중립");
+        assertThat(result.overallSentiment()).isEqualTo("호재 우세");
+        assertThat(result.briefSummary()).contains("상승 요인 우세");
+        assertThat(result.priceImpact().direction()).isEqualTo("상승 요인 우세");
         assertThat(result.directNews()).hasSize(1);
+        assertThat(result.directNews().get(0).sentiment()).isEqualTo("호재");
         assertThat(result.indirectNews()).hasSize(1);
+        assertThat(result.indirectNews().get(0).relatedFactor()).isEqualTo("금리");
     }
 
     @Test

@@ -49,45 +49,272 @@ public class OpenAiAnalysisService {
 
     private AiAnalysisResult createMockAnalysis(String stockName, NewsSearchResult newsSearchResult) {
         List<DirectNewsAnalysis> directNews = newsSearchResult.directNews().stream()
-                .map(news -> new DirectNewsAnalysis(
-                        news.title(),
-                        "중립",
-                        0,
-                        1.0,
-                        0.7,
-                        1.0,
-                        "개발용 mock 분석입니다. 실제 OpenAI 호출 없이 뉴스와 종목의 관련성만 확인합니다.",
-                        "중간"
-                ))
+                .map(news -> createDirectNewsAnalysis(stockName, news))
                 .toList();
         List<IndirectNewsAnalysis> indirectNews = newsSearchResult.indirectNews().stream()
-                .map(news -> new IndirectNewsAnalysis(
-                        news.title(),
-                        "기타",
-                        "중립",
-                        0,
-                        0.5,
-                        0.7,
-                        1.0,
-                        "개발용 mock 분석입니다. 실제 OpenAI 호출 없이 간접 영향 뉴스 흐름만 확인합니다.",
-                        "중간"
-                ))
+                .map(news -> createIndirectNewsAnalysis(stockName, news))
                 .toList();
+        int impactScore = directNews.stream().mapToInt(DirectNewsAnalysis::sentimentScore).sum()
+                + indirectNews.stream().mapToInt(IndirectNewsAnalysis::sentimentScore).sum();
+        String overallSentiment = resolveOverallSentiment(impactScore);
+        String direction = resolveDirection(impactScore);
+        String confidence = resolveConfidence(directNews.size() + indirectNews.size(), impactScore);
 
         return new AiAnalysisResult(
                 stockName,
-                "개발용 mock 분석 결과입니다. 실제 가격 영향 가능성 판단은 OpenAI 실제 호출 모드에서 생성됩니다.",
-                "중립",
+                createBriefSummary(stockName, directNews, indirectNews, direction),
+                overallSentiment,
                 new PriceImpactAnalysis(
-                        "판단 어려움",
-                        "낮음",
-                        "현재는 비용 방지를 위한 mock 모드이므로 실제 뉴스의 투자적 의미를 판단하지 않습니다."
+                        direction,
+                        confidence,
+                        createPriceImpactReason(stockName, directNews, indirectNews, direction)
                 ),
                 directNews,
                 indirectNews,
-                List.of(new CheckEventAnalysis(null, "실제 OpenAI 분석 모드 전환", "AI 분석 품질을 확인하려면 AI_ANALYSIS_MODE=openai로 전환해야 합니다.")),
+                createCheckEvents(stockName, indirectNews),
                 CAUTION
         );
+    }
+
+    private DirectNewsAnalysis createDirectNewsAnalysis(String stockName, NewsItemDto news) {
+        MockNewsSignal signal = analyzeNewsSignal(news);
+        return new DirectNewsAnalysis(
+                news.title(),
+                signal.sentiment(),
+                signal.sentimentScore(),
+                1.0,
+                signal.importance(),
+                1.0,
+                createDirectReason(stockName, news, signal),
+                signal.impactLevel()
+        );
+    }
+
+    private IndirectNewsAnalysis createIndirectNewsAnalysis(String stockName, NewsItemDto news) {
+        MockNewsSignal signal = analyzeNewsSignal(news);
+        String relatedFactor = resolveRelatedFactor(news);
+        double relevance = resolveIndirectRelevance(relatedFactor);
+
+        return new IndirectNewsAnalysis(
+                news.title(),
+                relatedFactor,
+                signal.sentiment(),
+                signal.sentimentScore(),
+                relevance,
+                signal.importance(),
+                1.0,
+                createIndirectReason(stockName, news, signal, relatedFactor),
+                signal.impactLevel()
+        );
+    }
+
+    private MockNewsSignal analyzeNewsSignal(NewsItemDto news) {
+        String text = normalize(news.title() + " " + news.description());
+        int positiveMatches = countMatches(text, List.of(
+                "호실적", "실적 개선", "흑자", "수요 증가", "수요 확대", "성장", "수주", "공급 계약",
+                "투자", "증설", "출시", "승인", "강세", "상승", "급등", "기대", "개선", "회복", "확대",
+                "AI", "HBM", "반도체 수요", "금리 인하", "환율 안정", "수출 증가"
+        ));
+        int negativeMatches = countMatches(text, List.of(
+                "적자", "감소", "부진", "둔화", "하락", "급락", "약세", "우려", "리스크", "소송",
+                "파업", "분쟁", "규제", "압박", "제재", "감원", "실패", "경고", "악화", "금리 인상",
+                "환율 급등", "유가 급등", "전쟁", "관세"
+        ));
+        double importance = resolveImportance(text);
+
+        if (positiveMatches > negativeMatches) {
+            return new MockNewsSignal("호재", 1, importance, resolveImpactLevel(importance));
+        }
+        if (negativeMatches > positiveMatches) {
+            return new MockNewsSignal("악재 가능성", -1, importance, resolveImpactLevel(importance));
+        }
+        return new MockNewsSignal("중립", 0, importance, resolveImpactLevel(importance));
+    }
+
+    private double resolveImportance(String text) {
+        if (containsAny(text, List.of("실적", "수주", "공급 계약", "투자", "규제", "금리", "환율", "유가", "전쟁", "소송", "파업", "AI", "HBM", "반도체"))) {
+            return 1.0;
+        }
+        if (containsAny(text, List.of("출시", "협력", "정책", "경쟁", "수요", "수출", "시장", "업황"))) {
+            return 0.7;
+        }
+        return 0.4;
+    }
+
+    private String resolveImpactLevel(double importance) {
+        if (importance >= 1.0) {
+            return "높음";
+        }
+        if (importance >= 0.7) {
+            return "중간";
+        }
+        return "낮음";
+    }
+
+    private String resolveRelatedFactor(NewsItemDto news) {
+        String text = normalize(news.title() + " " + news.description());
+        if (containsAny(text, List.of("금리", "연준", "FOMC", "채권"))) {
+            return "금리";
+        }
+        if (containsAny(text, List.of("환율", "원달러", "달러", "엔화"))) {
+            return "환율";
+        }
+        if (containsAny(text, List.of("전쟁", "분쟁", "중동", "우크라이나"))) {
+            return "전쟁";
+        }
+        if (containsAny(text, List.of("유가", "원유", "석유", "OPEC"))) {
+            return "유가";
+        }
+        if (containsAny(text, List.of("TSMC", "엔비디아", "애플", "구글", "마이크로소프트", "경쟁사"))) {
+            return "경쟁사";
+        }
+        if (containsAny(text, List.of("정책", "규제", "정부", "법안", "관세", "제재"))) {
+            return "정책";
+        }
+        if (containsAny(text, List.of("반도체", "AI", "플랫폼", "배터리", "전기차", "광고", "커머스", "업황", "수출"))) {
+            return "산업";
+        }
+        return "기타";
+    }
+
+    private double resolveIndirectRelevance(String relatedFactor) {
+        return switch (relatedFactor) {
+            case "산업", "경쟁사" -> 0.7;
+            case "금리", "환율", "전쟁", "유가", "정책" -> 0.5;
+            default -> 0.3;
+        };
+    }
+
+    private String createDirectReason(String stockName, NewsItemDto news, MockNewsSignal signal) {
+        return switch (signal.sentiment()) {
+            case "호재" -> "%s와 직접 연결된 이슈로, '%s' 보도는 실적 기대나 투자 심리에 긍정적으로 작용할 가능성이 있습니다."
+                    .formatted(stockName, news.title());
+            case "악재 가능성" -> "%s와 직접 연결된 이슈로, '%s' 보도는 비용 부담이나 투자 심리 위축 요인으로 해석될 수 있습니다."
+                    .formatted(stockName, news.title());
+            default -> "%s 관련 보도이지만 현재 제목과 요약만으로는 뚜렷한 방향성을 단정하기 어려워 중립으로 분류했습니다."
+                    .formatted(stockName);
+        };
+    }
+
+    private String createIndirectReason(String stockName, NewsItemDto news, MockNewsSignal signal, String relatedFactor) {
+        return switch (signal.sentiment()) {
+            case "호재" -> "%s 요인은 %s의 업황과 투자 심리에 간접적으로 우호적인 영향을 줄 가능성이 있습니다."
+                    .formatted(relatedFactor, stockName);
+            case "악재 가능성" -> "%s 요인은 %s의 수요, 비용, 밸류에이션에 부담으로 작용할 가능성이 있어 추가 확인이 필요합니다."
+                    .formatted(relatedFactor, stockName);
+            default -> "'%s' 보도는 %s와 관련된 간접 변수지만, 현재 정보만으로 방향성을 판단하기는 제한적입니다."
+                    .formatted(news.title(), stockName);
+        };
+    }
+
+    private String createBriefSummary(String stockName, List<DirectNewsAnalysis> directNews, List<IndirectNewsAnalysis> indirectNews, String direction) {
+        long positive = countSentiment(directNews, indirectNews, "호재");
+        long negative = countSentiment(directNews, indirectNews, "악재 가능성");
+        return "오늘 %s 관련 뉴스는 호재성 이슈 %d건, 악재 가능성 이슈 %d건으로 집계됐으며, 종합적으로는 %s로 정리됩니다."
+                .formatted(stockName, positive, negative, direction);
+    }
+
+    private String createPriceImpactReason(String stockName, List<DirectNewsAnalysis> directNews, List<IndirectNewsAnalysis> indirectNews, String direction) {
+        String mainPositive = findFirstTitle(directNews, indirectNews, "호재");
+        String mainNegative = findFirstTitle(directNews, indirectNews, "악재 가능성");
+        if (StringUtils.hasText(mainPositive) && StringUtils.hasText(mainNegative)) {
+            return "긍정 요인으로는 '%s'가 확인되지만, '%s'도 함께 나타나 %s의 가격 영향 가능성은 혼조로 볼 수 있습니다."
+                    .formatted(mainPositive, mainNegative, stockName);
+        }
+        if (StringUtils.hasText(mainPositive)) {
+            return "'%s'가 핵심 긍정 요인으로 확인되며, %s에 대한 투자 심리에 우호적으로 작용할 가능성이 있습니다."
+                    .formatted(mainPositive, stockName);
+        }
+        if (StringUtils.hasText(mainNegative)) {
+            return "'%s'가 주요 부담 요인으로 확인되며, %s 관련 단기 투자 심리에 부담으로 작용할 가능성이 있습니다."
+                    .formatted(mainNegative, stockName);
+        }
+        return "수집된 뉴스에서 뚜렷한 방향성은 제한적이어서 %s의 가격 영향 가능성은 %s로 정리됩니다."
+                .formatted(stockName, direction);
+    }
+
+    private List<CheckEventAnalysis> createCheckEvents(String stockName, List<IndirectNewsAnalysis> indirectNews) {
+        List<String> factors = indirectNews.stream()
+                .map(IndirectNewsAnalysis::relatedFactor)
+                .distinct()
+                .limit(2)
+                .toList();
+        if (factors.isEmpty()) {
+            return List.of(new CheckEventAnalysis(null, stockName + " 후속 공시 및 실적 관련 뉴스", "직접 뉴스가 추가로 나올 경우 가격 영향 가능성 판단이 달라질 수 있습니다."));
+        }
+        return factors.stream()
+                .map(factor -> new CheckEventAnalysis(null, factor + " 관련 후속 뉴스", factor + " 변화는 " + stockName + "의 투자 심리와 업황 판단에 영향을 줄 수 있습니다."))
+                .toList();
+    }
+
+    private String resolveOverallSentiment(int impactScore) {
+        if (impactScore > 0) {
+            return "호재 우세";
+        }
+        if (impactScore < 0) {
+            return "악재 리스크 존재";
+        }
+        return "혼조";
+    }
+
+    private String resolveDirection(int impactScore) {
+        if (impactScore > 0) {
+            return "상승 요인 우세";
+        }
+        if (impactScore < 0) {
+            return "하락 리스크 존재";
+        }
+        return "혼조";
+    }
+
+    private String resolveConfidence(int newsCount, int impactScore) {
+        if (newsCount >= 6 && Math.abs(impactScore) >= 2) {
+            return "중간";
+        }
+        return "낮음";
+    }
+
+    private long countSentiment(List<DirectNewsAnalysis> directNews, List<IndirectNewsAnalysis> indirectNews, String sentiment) {
+        return directNews.stream().filter(news -> sentiment.equals(news.sentiment())).count()
+                + indirectNews.stream().filter(news -> sentiment.equals(news.sentiment())).count();
+    }
+
+    private String findFirstTitle(List<DirectNewsAnalysis> directNews, List<IndirectNewsAnalysis> indirectNews, String sentiment) {
+        return directNews.stream()
+                .filter(news -> sentiment.equals(news.sentiment()))
+                .map(DirectNewsAnalysis::title)
+                .findFirst()
+                .orElseGet(() -> indirectNews.stream()
+                        .filter(news -> sentiment.equals(news.sentiment()))
+                        .map(IndirectNewsAnalysis::title)
+                        .findFirst()
+                        .orElse(""));
+    }
+
+    private int countMatches(String text, List<String> keywords) {
+        int count = 0;
+        for (String keyword : keywords) {
+            if (text.contains(normalize(keyword))) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private boolean containsAny(String text, List<String> keywords) {
+        return keywords.stream().anyMatch(keyword -> text.contains(normalize(keyword)));
+    }
+
+    private String normalize(String value) {
+        return value == null ? "" : value.toLowerCase();
+    }
+
+    private record MockNewsSignal(
+            String sentiment,
+            Integer sentimentScore,
+            Double importance,
+            String impactLevel
+    ) {
     }
 
     private void validateOpenAiApiKey() {
