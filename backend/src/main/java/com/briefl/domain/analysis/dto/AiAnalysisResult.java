@@ -6,9 +6,9 @@ public record AiAnalysisResult(
         String stockName,
         String briefSummary,
         String overallSentiment,
+        Double newsImpactScore,
         PriceImpactAnalysis priceImpact,
-        List<DirectNewsAnalysis> directNews,
-        List<IndirectNewsAnalysis> indirectNews,
+        List<SentimentAnalysis> sentimentAnalyses,
         List<CheckEventAnalysis> checkEvents,
         String caution
 ) {
