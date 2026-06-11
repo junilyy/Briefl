@@ -47,4 +47,4 @@ external-api:
     open-ai-request-seconds: ${OPENAI_API_REQUEST_TIMEOUT_SECONDS:30}
 
 server:
-  port: 8080
+  port: ${PORT:8080}
