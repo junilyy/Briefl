@@ -63,11 +63,11 @@ const newsTypeLabels: Record<string, string> = {
 }
 
 const analysisSteps = [
-  '기업 관련 뉴스 확인 중',
-  '산업·매크로 이슈 확인 중',
-  '금리·환율·정책 변수 확인 중',
-  '호재·중립·악재 가능성 분류 중',
-  '가격 영향 요인 정리 중',
+  '직접 뉴스 수집',
+  '간접 변수 확인',
+  '이벤트 후보 검색',
+  '방향성 판단',
+  '체크 포인트 정리',
 ]
 
 const whyCards = [
@@ -322,12 +322,16 @@ function App() {
 
       <section className="hero-section" aria-labelledby="page-title">
         <div className="hero-copy">
-          <span className="eyebrow">개인 투자자를 위한 AI 뉴스 브리프</span>
-          <h1 id="page-title">내 종목에 영향을 줄 뉴스를, 남들보다 늦게 보고 있지는 않나요?</h1>
+          <span className="eyebrow">AI Stock News Brief</span>
+          <h1 id="page-title">오늘 내 종목에 좋은 뉴스인지, 부담 뉴스인지 바로 확인하세요.</h1>
           <p>
-            BRIEFL은 관심 종목의 직접 뉴스와 금리·환율·정책·산업 이슈 같은 간접 변수를 함께 분석해
-            호재·중립·악재 가능성과 가격 영향 요인을 정리합니다.
+            BRIEFL은 관심 종목 뉴스, 산업 변수, 예정 이벤트를 한 번에 묶어 오늘 볼 핵심 판단만 먼저 보여줍니다.
           </p>
+          <div className="hero-points" aria-label="브리플 핵심 기능">
+            <span>뉴스 방향</span>
+            <span>가격 영향</span>
+            <span>체크 이벤트</span>
+          </div>
           <div className="hero-actions">
             <button
               className="primary-button"
@@ -361,6 +365,15 @@ function App() {
         />
       </section>
 
+      <ReportDashboard
+        refTarget={reportRef}
+        report={report}
+        selectedStockLabel={selectedStockLabel}
+        isLoading={reportState === 'loading'}
+      />
+
+      <FeedbackForm report={report} selectedStockLabel={selectedStockLabel} />
+
       <section className="why-section" id="why-it-matters" aria-labelledby="why-title">
         <div className="section-heading">
           <span className="eyebrow">Why It Matters</span>
@@ -376,15 +389,6 @@ function App() {
           ))}
         </div>
       </section>
-
-      <ReportDashboard
-        refTarget={reportRef}
-        report={report}
-        selectedStockLabel={selectedStockLabel}
-        isLoading={reportState === 'loading'}
-      />
-
-      <FeedbackForm report={report} selectedStockLabel={selectedStockLabel} />
     </main>
   )
 }
@@ -415,7 +419,7 @@ function StockConsole({
   return (
     <aside className="stock-console" aria-label="브리프 생성">
       <div className="console-header">
-        <span>오늘 확인할 관심 종목</span>
+        <span>Step 1. 종목 선택</span>
         <strong>{selectedStockLabel || '종목 선택'}</strong>
       </div>
 
@@ -439,7 +443,7 @@ function StockConsole({
         })}
       </div>
 
-      <p className="console-help">초기 테스트에서는 일부 종목만 지원합니다.</p>
+      <p className="console-help">뉴스를 새로 분석하거나, 오늘 이미 만든 리포트를 다시 불러올 수 있습니다.</p>
 
       <div className="console-actions">
         <button className="primary-button" type="button" disabled={disabled} onClick={onCreate}>
@@ -474,7 +478,7 @@ function ReportDashboard({
     return (
       <section className="report-shell loading-panel" ref={refTarget} aria-live="polite">
         <span className="eyebrow">AI Brief Loading</span>
-        <h2>직접 뉴스와 간접 이슈를 함께 분석하고 있습니다.</h2>
+        <h2>오늘 볼 뉴스 방향을 정리하고 있습니다.</h2>
         <div className="loading-track">
           {analysisSteps.map((step, index) => (
             <div className="loading-step" key={step}>
@@ -490,10 +494,10 @@ function ReportDashboard({
   if (!report) {
     return (
       <section className="report-shell empty-panel" ref={refTarget}>
-        <span className="eyebrow">AI Brief Result</span>
-        <h2>{selectedStockLabel || '관심 종목'} 브리프가 이곳에 표시됩니다.</h2>
+        <span className="eyebrow">Step 2. 리포트 확인</span>
+        <h2>{selectedStockLabel || '관심 종목'}의 오늘 판단 카드가 이곳에 표시됩니다.</h2>
         <p>
-          버튼을 누르면 참고 뉴스, 종합 분석, 가격 영향 가능성, 체크 이벤트가 대시보드 형태로 정리됩니다.
+          생성 버튼을 누르면 오늘 뉴스 방향, 가격 영향, 체크 이벤트, 참고 뉴스가 한 화면에 정리됩니다.
         </p>
       </section>
     )
@@ -507,6 +511,9 @@ function ReportDashboard({
           <h2 id="report-title">{report.stockName} 오늘의 AI 브리프</h2>
           <p>{report.reportDate}</p>
         </div>
+      </div>
+
+      <div className="decision-board">
         <div className={`impact-score ${impactTone(report.newsImpactScore)}`}>
           <span>오늘 뉴스 방향</span>
           <strong>{impactLabel(report.newsImpactScore)}</strong>
@@ -515,31 +522,14 @@ function ReportDashboard({
             <i style={{ left: scorePosition(report.newsImpactScore) }} />
           </div>
         </div>
-      </div>
 
-      <div className={`summary-strip ${sentimentTone(report.overallSentiment)}`}>
-        <span className={`sentiment-pill ${sentimentTone(report.overallSentiment)}`}>
-          {normalizeSentiment(report.overallSentiment)}
-        </span>
-        <p>{report.briefSummary}</p>
-      </div>
-
-      <div className="report-grid">
-        <section className="analysis-panel" aria-label="AI 종합 분석">
-          <div className="section-title-row">
-            <h3>AI 종합 분석</h3>
-            <span>참고 뉴스 기반 요약</span>
-          </div>
-          {report.sentimentAnalyses.length > 0 ? (
-            <div className="analysis-grid">
-              {report.sentimentAnalyses.map((analysis) => (
-                <SentimentAnalysisCard analysis={analysis} key={analysis.sentiment} />
-              ))}
-            </div>
-          ) : (
-            <p className="empty-copy">표시할 종합 분석이 없습니다.</p>
-          )}
-        </section>
+        <div className={`summary-strip ${sentimentTone(report.overallSentiment)}`}>
+          <span className={`sentiment-pill ${sentimentTone(report.overallSentiment)}`}>
+            {normalizeSentiment(report.overallSentiment)}
+          </span>
+          <strong>핵심 판단</strong>
+          <p>{report.briefSummary}</p>
+        </div>
 
         <section
           className={`price-impact ${sentimentTone(report.priceImpact.direction)}`}
@@ -555,6 +545,22 @@ function ReportDashboard({
           <p>{report.priceImpact.reason}</p>
         </section>
       </div>
+
+      <section className="analysis-panel" aria-label="AI 종합 분석">
+        <div className="section-title-row">
+          <h3>AI 종합 분석</h3>
+          <span>호재 · 중립 · 부담 요인</span>
+        </div>
+        {report.sentimentAnalyses.length > 0 ? (
+          <div className="analysis-grid">
+            {report.sentimentAnalyses.map((analysis) => (
+              <SentimentAnalysisCard analysis={analysis} key={analysis.sentiment} />
+            ))}
+          </div>
+        ) : (
+          <p className="empty-copy">표시할 종합 분석이 없습니다.</p>
+        )}
+      </section>
 
       <ReferencedNewsList items={report.referencedNews} />
 
@@ -654,6 +660,10 @@ function FeedbackForm({
 }) {
   const [feedback, setFeedback] = useState<FeedbackState>(initialFeedback)
   const [submitState, setSubmitState] = useState<LoadState>('idle')
+
+  if (!report) {
+    return null
+  }
 
   const updateSingle = (key: keyof FeedbackState, value: string) => {
     setFeedback((current) => ({ ...current, [key]: value }))
