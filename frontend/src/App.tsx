@@ -1,126 +1,59 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { FormEvent, MutableRefObject } from 'react'
-import { createReport, getStocks, getTodayReport } from './api'
+import type { FormEvent, RefObject } from 'react'
+import { createReport, getStocks } from './api'
 import { submitReportFeedback } from './api/feedbackApi'
-import type { Report, ReportReferencedNews, ReportSentimentAnalysis, Stock } from './types'
+import type { Report, ReportSentimentAnalysis, Stock } from './types'
 import './App.css'
 
 type LoadState = 'idle' | 'loading' | 'success' | 'error'
 
 type FeedbackState = {
-  lossAvoidanceHelp: string
-  informationGapReduced: string
-  trustScore: string
+  helpful: string
   mostUseful: string[]
-  painPoints: string[]
+  missing: string[]
   reuseIntent: string
-  willingnessToPay: string
   email: string
   comment: string
 }
 
 const initialFeedback: FeedbackState = {
-  lossAvoidanceHelp: '',
-  informationGapReduced: '',
-  trustScore: '',
+  helpful: '',
   mostUseful: [],
-  painPoints: [],
+  missing: [],
   reuseIntent: '',
-  willingnessToPay: '',
   email: '',
   comment: '',
 }
 
+const loadingSteps = [
+  '관련 뉴스를 수집하고 있습니다',
+  '호재·악재 가능성을 분석하고 있습니다',
+  '가격 영향 포인트를 정리하고 있습니다',
+]
+
+const usefulOptions = ['뉴스 요약', '호재·악재 분류', '가격 영향 가능성', '판단 근거', '체크 포인트']
+const missingOptions = ['뉴스가 부족함', '근거가 약함', '판단이 애매함', '화면이 복잡함', '신뢰하기 어려움']
+
 const sentimentLabels: Record<string, string> = {
   POSITIVE: '호재',
   NEUTRAL: '중립',
-  NEGATIVE: '악재 가능성',
-  '악재 가능성': '부담 요인',
-  '부담 요인': '부담 요인',
-}
-
-const directionLabels: Record<string, string> = {
-  UP: '상승 요인 우세',
-  DOWN: '하락 리스크 존재',
-  NEUTRAL: '방향 불명확',
-  MIXED: '변동성 주의',
-  중립: '방향 불명확',
-  혼조: '변동성 주의',
-  '판단 어려움': '방향 불명확',
-  '상승 요인 우세': '긍정 요인 우세',
-  '하락 리스크 존재': '부담 요인 우세',
-}
-
-const confidenceLabels: Record<string, string> = {
-  HIGH: '높음',
-  MEDIUM: '중간',
-  LOW: '낮음',
+  NEGATIVE: '악재',
+  '악재 가능성': '악재',
+  '부담 요인': '악재',
 }
 
 const newsTypeLabels: Record<string, string> = {
-  DIRECT: '직접 뉴스',
-  INDIRECT: '간접 영향 뉴스',
+  DIRECT: '핵심 뉴스',
+  INDIRECT: '관련 이슈',
 }
 
-const analysisSteps = [
-  '직접 뉴스 수집',
-  '간접 변수 확인',
-  '이벤트 후보 검색',
-  '방향성 판단',
-  '체크 포인트 정리',
-]
+function stockLabel(stock: Stock | undefined, fallback = '') {
+  if (!stock) {
+    return fallback
+  }
 
-const whyCards = [
-  {
-    label: '손실 회피',
-    title: '중요한 이슈를 놓치면 손실로 이어질 수 있습니다',
-    copy:
-      '실적 발표, 금리, 환율, 정책 변화처럼 종목에 영향을 줄 수 있는 뉴스는 늦게 확인할수록 판단 여지가 줄어듭니다.',
-  },
-  {
-    label: '정보 격차',
-    title: '같은 뉴스도 해석 속도가 다릅니다',
-    copy:
-      '뉴스를 많이 보는 것보다 중요한 건 내 종목과 연결되는지 빠르게 구분하는 것입니다.',
-  },
-  {
-    label: '판단 근거',
-    title: '남의 말보다 내 판단 근거가 필요합니다',
-    copy:
-      '브리플은 참고 뉴스, 영향 요인, 체크 이벤트를 한 번에 정리해 오늘 무엇을 먼저 봐야 할지 보여줍니다.',
-  },
-]
-
-const singleChoiceQuestions = [
-  {
-    id: 'lossAvoidanceHelp' as const,
-    question: '이 브리프가 중요한 뉴스를 놓치지 않는 데 도움이 될 것 같나요?',
-    options: ['매우 도움됨', '도움됨', '보통', '도움 안 됨'],
-  },
-  {
-    id: 'informationGapReduced' as const,
-    question: '남들보다 늦게 뉴스를 해석한다는 불안감을 줄여줄 것 같나요?',
-    options: ['많이 줄어듦', '어느 정도 줄어듦', '잘 모르겠음', '줄어들지 않음'],
-  },
-  {
-    id: 'trustScore' as const,
-    question: '호재·중립·악재 판단 근거를 신뢰할 수 있었나요?',
-    options: ['신뢰됨', '어느 정도 신뢰됨', '판단 어려움', '신뢰 어려움'],
-  },
-  {
-    id: 'reuseIntent' as const,
-    question: '이 브리프를 다시 사용해보고 싶나요?',
-    options: ['매일 받아보고 싶음', '관심 종목 이슈가 있을 때만', '가끔 확인하고 싶음', '다시 쓸지는 모르겠음'],
-  },
-  {
-    id: 'willingnessToPay' as const,
-    question: '이 정도 분석이 더 정교해진다면 월 얼마까지 이용할 의향이 있나요?',
-    options: ['무료면 이용', '1,000~3,000원', '5,000원 내외', '10,000원 이상', '이용 의향 없음'],
-  },
-]
-
-const usefulOptions = ['뉴스 요약', '호재/악재 분류', '가격 영향 가능성', '간접 이슈 분석', '체크 이벤트', '판단 근거']
-const painPointOptions = ['뉴스가 부족함', '분석 근거가 약함', '가격 영향 판단이 애매함', '간접 이슈 연결이 부족함', '화면이 복잡함', '신뢰하기 어려움']
+  return stock.displayName || stock.stockName
+}
 
 function formatDateTime(value: string) {
   if (!value) {
@@ -130,12 +63,25 @@ function formatDateTime(value: string) {
   return value.replace('T', ' ').slice(0, 16)
 }
 
-function formatScore(value: number | undefined) {
-  if (value === undefined || Number.isNaN(value)) {
-    return '-'
+function normalizeSentiment(value: string) {
+  return sentimentLabels[value] ?? value
+}
+
+function sentimentTone(value: string) {
+  if (value.includes('호재') || value.includes('상승') || value.includes('긍정') || value === 'POSITIVE') {
+    return 'positive'
   }
 
-  return value > 0 ? `+${value.toFixed(1)}` : value.toFixed(1)
+  if (
+    value.includes('악재') ||
+    value.includes('하락') ||
+    value.includes('부담') ||
+    value === 'NEGATIVE'
+  ) {
+    return 'negative'
+  }
+
+  return 'neutral'
 }
 
 function impactTone(value: number | undefined) {
@@ -156,26 +102,26 @@ function impactTone(value: number | undefined) {
 
 function impactLabel(value: number | undefined) {
   if (value === undefined || Number.isNaN(value)) {
-    return '방향 정보 없음'
-  }
-
-  if (value >= 0.6) {
-    return '긍정 요인 우세'
+    return '중립'
   }
 
   if (value >= 0.2) {
-    return '긍정 요인 약간 우세'
-  }
-
-  if (value <= -0.6) {
-    return '부담 요인 우세'
+    return '호재'
   }
 
   if (value <= -0.2) {
-    return '부담 요인 약간 우세'
+    return '악재'
   }
 
-  return '방향 불명확'
+  return '중립'
+}
+
+function formatScore(value: number | undefined) {
+  if (value === undefined || Number.isNaN(value)) {
+    return '-'
+  }
+
+  return value > 0 ? `+${value.toFixed(1)}` : value.toFixed(1)
 }
 
 function scorePosition(value: number | undefined) {
@@ -187,60 +133,27 @@ function scorePosition(value: number | undefined) {
   return `${((clamped + 1) / 2) * 100}%`
 }
 
-function sentimentTone(value: string) {
-  if (value.includes('호재') || value.includes('상승') || value.includes('긍정') || value === 'POSITIVE') {
-    return 'positive'
-  }
-
-  if (
-    value.includes('악재') ||
-    value.includes('하락') ||
-    value.includes('부담') ||
-    value === 'NEGATIVE'
-  ) {
-    return 'negative'
-  }
-
-  return 'neutral'
-}
-
 function eventDateLabel(value: string | null) {
   return value?.trim() || '일정 미정'
 }
 
-function normalizeSentiment(value: string) {
-  return sentimentLabels[value] ?? value
-}
-
-function stockLabel(stock: Stock | undefined, fallback = '') {
-  if (!stock) {
-    return fallback
-  }
-
-  return stock.displayName || stock.stockName
-}
-
 function App() {
   const [stocks, setStocks] = useState<Stock[]>([])
-  const [selectedStock, setSelectedStock] = useState('')
+  const [stockInput, setStockInput] = useState('')
   const [report, setReport] = useState<Report | null>(null)
+  const [generatedStockName, setGeneratedStockName] = useState('')
   const [stockState, setStockState] = useState<LoadState>('loading')
   const [reportState, setReportState] = useState<LoadState>('idle')
   const [message, setMessage] = useState('')
+  const [limitVisible, setLimitVisible] = useState(false)
   const reportRef = useRef<HTMLElement | null>(null)
-
-  const selectedStockItem = useMemo(
-    () => stocks.find((item) => item.stockName === selectedStock),
-    [selectedStock, stocks],
-  )
-
-  const selectedStockLabel = stockLabel(selectedStockItem, selectedStock)
+  const feedbackRef = useRef<HTMLElement | null>(null)
 
   useEffect(() => {
     getStocks()
       .then((items) => {
         setStocks(items)
-        setSelectedStock(items[0]?.stockName ?? '')
+        setStockInput(stockLabel(items[0], ''))
         setStockState('success')
       })
       .catch((error: Error) => {
@@ -249,52 +162,49 @@ function App() {
       })
   }, [])
 
+  const selectedStock = useMemo(() => resolveStock(stockInput, stocks), [stockInput, stocks])
+  const selectedStockLabel = stockLabel(selectedStock, stockInput)
+
   const scrollToReport = () => {
     window.setTimeout(() => {
       reportRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }, 120)
+    }, 100)
   }
 
-  const handleLoadTodayReport = async () => {
-    if (!selectedStock) {
-      setMessage('조회할 종목을 선택해주세요.')
-      return
-    }
-
-    setReportState('loading')
-    setMessage('저장된 리포트를 확인하고 있습니다.')
-    scrollToReport()
-
-    try {
-      const data = await getTodayReport(selectedStock)
-      setReport(data)
-      setReportState('success')
-      setMessage('저장된 리포트를 불러왔습니다.')
-    } catch (error) {
-      setReportState('error')
-      setMessage(
-        error instanceof Error
-          ? `오늘 생성된 리포트를 불러오지 못했습니다. ${error.message}`
-          : '오늘 생성된 리포트를 불러오지 못했습니다.',
-      )
-    }
+  const scrollToFeedback = () => {
+    window.setTimeout(() => {
+      feedbackRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 80)
   }
 
   const handleCreateReport = async () => {
-    if (!selectedStock) {
-      setMessage('생성할 종목을 선택해주세요.')
+    if (stockState !== 'success') {
+      setMessage('지원 종목을 불러오는 중입니다.')
       return
     }
 
+    if (!selectedStock) {
+      setMessage('현재 지원하는 종목명을 입력해주세요.')
+      return
+    }
+
+    if (generatedStockName && generatedStockName !== selectedStock.stockName) {
+      setLimitVisible(true)
+      scrollToFeedback()
+      return
+    }
+
+    setLimitVisible(false)
     setReportState('loading')
-    setMessage('직접 뉴스와 간접 이슈를 함께 분석하고 있습니다.')
+    setMessage('AI가 오늘의 뉴스 방향을 분석하고 있습니다.')
     scrollToReport()
 
     try {
-      const data = await createReport(selectedStock)
+      const data = await createReport(selectedStock.stockName)
       setReport(data)
+      setGeneratedStockName(selectedStock.stockName)
       setReportState('success')
-      setMessage('리포트가 생성되었습니다.')
+      setMessage('무료 리포트가 생성되었습니다.')
     } catch (error) {
       setReportState('error')
       setMessage(
@@ -307,296 +217,431 @@ function App() {
 
   return (
     <main className="page-shell">
-      <nav className="top-nav" aria-label="브리플">
-        <a className="brand" href="#page-title" aria-label="BRIEFL 홈">
-          <span className="brand-mark" aria-hidden="true">
-            B
-          </span>
-          <span className="brand-copy">
-            <span className="brand-name">BRIEFL</span>
-            <span className="brand-subtitle">브리플</span>
-          </span>
-        </a>
-        <span className="api-chip">Live News Brief</span>
-      </nav>
-
-      <section className="hero-section" aria-labelledby="page-title">
-        <div className="hero-copy">
-          <span className="eyebrow">AI Stock News Brief</span>
-          <h1 id="page-title">오늘 내 종목에 좋은 뉴스인지, 부담 뉴스인지 바로 확인하세요.</h1>
-          <p>
-            BRIEFL은 관심 종목 뉴스, 산업 변수, 예정 이벤트를 한 번에 묶어 오늘 볼 핵심 판단만 먼저 보여줍니다.
-          </p>
-          <div className="hero-points" aria-label="브리플 핵심 기능">
-            <span>뉴스 방향</span>
-            <span>가격 영향</span>
-            <span>체크 이벤트</span>
-          </div>
-          <div className="hero-actions">
-            <button
-              className="primary-button"
-              type="button"
-              disabled={stockState !== 'success' || reportState === 'loading'}
-              onClick={handleCreateReport}
-            >
-              오늘의 AI 브리프 확인하기
-            </button>
-            <a className="ghost-link" href="#why-it-matters">
-              왜 필요한지 보기
-            </a>
-          </div>
-        </div>
-
-        <StockConsole
-          stocks={stocks}
-          selectedStock={selectedStock}
-          selectedStockLabel={selectedStockLabel}
-          stockState={stockState}
-          reportState={reportState}
-          message={message}
-          onSelect={(value) => {
-            setSelectedStock(value)
-            setReport(null)
-            setMessage('')
-            setReportState('idle')
-          }}
-          onCreate={handleCreateReport}
-          onLoad={handleLoadTodayReport}
-        />
-      </section>
-
-      <ReportDashboard
+      <TopNav />
+      <HeroSection
+        stocks={stocks}
+        stockInput={stockInput}
+        stockState={stockState}
+        reportState={reportState}
+        message={message}
+        onStockInput={setStockInput}
+        onCreate={handleCreateReport}
+      />
+      <ProblemSection />
+      <FeatureSection />
+      <ReportGenerator
         refTarget={reportRef}
         report={report}
+        reportState={reportState}
         selectedStockLabel={selectedStockLabel}
-        isLoading={reportState === 'loading'}
+        stocks={stocks}
+        stockInput={stockInput}
+        stockState={stockState}
+        message={message}
+        onStockInput={setStockInput}
+        onCreate={handleCreateReport}
       />
-
-      <FeedbackForm report={report} selectedStockLabel={selectedStockLabel} />
-
-      <section className="why-section" id="why-it-matters" aria-labelledby="why-title">
-        <div className="section-heading">
-          <span className="eyebrow">Why It Matters</span>
-          <h2 id="why-title">투자 뉴스에서 중요한 건 많이 보는 것이 아니라, 놓치지 않는 것입니다.</h2>
-        </div>
-        <div className="why-grid">
-          {whyCards.map((card) => (
-            <article className="why-card" key={card.title}>
-              <span>{card.label}</span>
-              <h3>{card.title}</h3>
-              <p>{card.copy}</p>
-            </article>
-          ))}
-        </div>
-      </section>
+      <LimitModal visible={limitVisible} onBetaClick={scrollToFeedback} />
+      <FeedbackSection
+        refTarget={feedbackRef}
+        report={report}
+        selectedStockLabel={selectedStockLabel}
+        forceVisible={limitVisible}
+      />
     </main>
   )
 }
 
-function StockConsole({
+function resolveStock(value: string, stocks: Stock[]) {
+  const normalized = value.trim().toLowerCase()
+  if (!normalized) {
+    return undefined
+  }
+
+  return stocks.find((stock) => {
+    const names = [stock.stockName, stock.displayName].map((item) => item.toLowerCase())
+    return names.includes(normalized)
+  })
+}
+
+function TopNav() {
+  return (
+    <nav className="top-nav" aria-label="브리플">
+      <a className="brand" href="#page-title" aria-label="BRIEFL 홈">
+        <span className="brand-mark" aria-hidden="true">
+          B
+        </span>
+        <span className="brand-copy">
+          <span className="brand-name">BRIEFL</span>
+          <span className="brand-subtitle">AI Stock Brief</span>
+        </span>
+      </a>
+      <a className="nav-link" href="#report-generator">
+        무료 리포트 생성
+      </a>
+    </nav>
+  )
+}
+
+function HeroSection({
   stocks,
-  selectedStock,
-  selectedStockLabel,
+  stockInput,
   stockState,
   reportState,
   message,
-  onSelect,
+  onStockInput,
   onCreate,
-  onLoad,
 }: {
   stocks: Stock[]
-  selectedStock: string
-  selectedStockLabel: string
+  stockInput: string
   stockState: LoadState
   reportState: LoadState
   message: string
-  onSelect: (value: string) => void
+  onStockInput: (value: string) => void
   onCreate: () => void
-  onLoad: () => void
 }) {
-  const disabled = stockState !== 'success' || reportState === 'loading'
-
   return (
-    <aside className="stock-console" aria-label="브리프 생성">
-      <div className="console-header">
-        <span>Step 1. 종목 선택</span>
-        <strong>{selectedStockLabel || '종목 선택'}</strong>
+    <section className="hero-section" aria-labelledby="page-title">
+      <div className="hero-copy">
+        <span className="eyebrow">AI 기반 관심 주식 뉴스 분석</span>
+        <h1 id="page-title">내 주식 떨어지고 나서야 악재 뉴스를 찾고 있나요?</h1>
+        <p>
+          관심 종목을 입력하면 오늘 나온 뉴스를 AI가 모아 호재·악재·중립 가능성과 가격 영향
+          포인트를 1분 만에 정리해드립니다.
+        </p>
+        <StockSearchForm
+          idPrefix="hero"
+          stocks={stocks}
+          stockInput={stockInput}
+          stockState={stockState}
+          reportState={reportState}
+          onStockInput={onStockInput}
+          onCreate={onCreate}
+          buttonLabel="무료 리포트 생성하기"
+        />
+        {message && <p className="hero-status">{message}</p>}
       </div>
 
-      <div className="stock-button-grid" role="listbox" aria-label="지원 종목">
-        {stocks.map((stock) => {
-          const active = stock.stockName === selectedStock
+      <HeroPreviewCard />
+    </section>
+  )
+}
 
-          return (
-            <button
-              className="stock-pill"
-              type="button"
-              key={stock.stockName}
-              aria-pressed={active}
-              disabled={reportState === 'loading'}
-              onClick={() => onSelect(stock.stockName)}
-            >
-              <span>{stockLabel(stock)}</span>
-              <small>{stock.market}</small>
-            </button>
-          )
-        })}
+function HeroPreviewCard() {
+  return (
+    <aside className="preview-card" aria-label="AI 리포트 미리보기">
+      <div className="preview-top">
+        <span>AI REPORT PREVIEW</span>
+        <strong>삼성전자</strong>
       </div>
-
-      <p className="console-help">뉴스를 새로 분석하거나, 오늘 이미 만든 리포트를 다시 불러올 수 있습니다.</p>
-
-      <div className="console-actions">
-        <button className="primary-button" type="button" disabled={disabled} onClick={onCreate}>
-          {reportState === 'loading' ? '분석 중...' : '오늘의 AI 브리프 생성하기'}
-        </button>
-        <button className="secondary-button" type="button" disabled={disabled} onClick={onLoad}>
-          저장된 리포트 조회
-        </button>
+      <div className="preview-judgement negative">
+        <span>종합 판단</span>
+        <strong>악재 가능성 주의</strong>
+        <p>수요 둔화 기사와 경쟁사 이슈가 함께 등장했습니다.</p>
       </div>
-
-      <div className="status-box" data-state={reportState}>
-        {stockState === 'loading'
-          ? '지원 종목을 불러오는 중입니다.'
-          : message || '종목을 선택하면 실제 백엔드 API를 호출해 오늘의 브리프를 생성합니다.'}
+      <div className="mini-chart" aria-hidden="true">
+        <i />
+        <i />
+        <i />
+        <i />
+        <i />
+      </div>
+      <div className="preview-news-list">
+        <span className="news-line negative">경쟁사 신제품 출시</span>
+        <span className="news-line neutral">환율 변동성 확대</span>
+        <span className="news-line positive">메모리 업황 회복 기대</span>
+      </div>
+      <div className="preview-check">
+        <span>체크 포인트</span>
+        <strong>실적 발표 전 수요 전망 코멘트 확인</strong>
       </div>
     </aside>
   )
 }
 
-function ReportDashboard({
+function StockSearchForm({
+  idPrefix,
+  stocks,
+  stockInput,
+  stockState,
+  reportState,
+  onStockInput,
+  onCreate,
+  buttonLabel,
+}: {
+  idPrefix: string
+  stocks: Stock[]
+  stockInput: string
+  stockState: LoadState
+  reportState: LoadState
+  onStockInput: (value: string) => void
+  onCreate: () => void
+  buttonLabel: string
+}) {
+  const disabled = stockState !== 'success' || reportState === 'loading'
+
+  return (
+    <div className="stock-search">
+      <label htmlFor={`${idPrefix}-stock-input`}>관심 종목</label>
+      <div className="stock-search-row">
+        <input
+          id={`${idPrefix}-stock-input`}
+          list={`${idPrefix}-stock-options`}
+          value={stockInput}
+          placeholder="예: 삼성전자"
+          onChange={(event) => onStockInput(event.target.value)}
+        />
+        <datalist id={`${idPrefix}-stock-options`}>
+          {stocks.map((stock) => (
+            <option value={stockLabel(stock)} key={stock.stockName} />
+          ))}
+        </datalist>
+        <button className="primary-button" type="button" disabled={disabled} onClick={onCreate}>
+          {reportState === 'loading' ? '분석 중...' : buttonLabel}
+        </button>
+      </div>
+      <div className="quick-stock-row" aria-label="빠른 종목 선택">
+        {stocks.slice(0, 5).map((stock) => (
+          <button type="button" key={stock.stockName} onClick={() => onStockInput(stockLabel(stock))}>
+            {stockLabel(stock)}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function ProblemSection() {
+  return (
+    <section className="problem-section" aria-labelledby="problem-title">
+      <div className="section-heading">
+        <span className="eyebrow">Problem</span>
+        <h2 id="problem-title">뉴스를 봐도 어렵고, 안 보면 늦습니다.</h2>
+      </div>
+      <div className="target-grid">
+        <article>
+          <span>초보 투자자</span>
+          <h3>뉴스를 봐도 해석이 어려운 분</h3>
+          <p>
+            뉴스 제목은 봤는데 이게 호재인지 악재인지 판단하기 어렵다면, AI가 핵심 내용과
+            방향성을 먼저 정리해드립니다.
+          </p>
+        </article>
+        <article>
+          <span>경험 투자자</span>
+          <h3>관심 종목이 많아 뉴스를 다 챙기기 어려운 분</h3>
+          <p>
+            이미 투자 중이어도 모든 뉴스와 이슈를 매일 따라가기는 어렵습니다. 종목별 주요
+            이슈와 체크 포인트만 빠르게 보여드립니다.
+          </p>
+        </article>
+      </div>
+      <p className="problem-punchline">초보자에게는 해석을, 경험자에게는 시간을 줄여드립니다.</p>
+    </section>
+  )
+}
+
+function FeatureSection() {
+  const features = [
+    {
+      title: '종목별 뉴스 수집',
+      copy: '흩어진 뉴스를 관심 종목 기준으로 모읍니다.',
+    },
+    {
+      title: '호재·악재·중립 분류',
+      copy: '뉴스가 어떤 방향의 이슈인지 먼저 구분합니다.',
+    },
+    {
+      title: '가격 영향 포인트 정리',
+      copy: '실적, 정책, 산업, 수급 중 무엇을 봐야 하는지 알려드립니다.',
+    },
+  ]
+
+  return (
+    <section className="feature-section" aria-labelledby="feature-title">
+      <div className="section-heading">
+        <span className="eyebrow">Features</span>
+        <h2 id="feature-title">뉴스 요약이 아니라, 판단할 포인트를 정리합니다.</h2>
+      </div>
+      <div className="feature-grid">
+        {features.map((feature, index) => (
+          <article key={feature.title}>
+            <span>{String(index + 1).padStart(2, '0')}</span>
+            <h3>{feature.title}</h3>
+            <p>{feature.copy}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function ReportGenerator({
   refTarget,
   report,
+  reportState,
   selectedStockLabel,
-  isLoading,
+  stocks,
+  stockInput,
+  stockState,
+  message,
+  onStockInput,
+  onCreate,
 }: {
-  refTarget: MutableRefObject<HTMLElement | null>
+  refTarget: RefObject<HTMLElement | null>
   report: Report | null
+  reportState: LoadState
   selectedStockLabel: string
-  isLoading: boolean
+  stocks: Stock[]
+  stockInput: string
+  stockState: LoadState
+  message: string
+  onStockInput: (value: string) => void
+  onCreate: () => void
 }) {
-  if (isLoading) {
+  return (
+    <section className="generator-section" id="report-generator" ref={refTarget}>
+      <div className="generator-copy">
+        <span className="eyebrow">Free AI Report</span>
+        <h2>무료 리포트 1개를 바로 생성해보세요.</h2>
+        <p>관심 종목을 입력하면 오늘 나온 뉴스 기준으로 핵심 판단 카드를 만듭니다.</p>
+      </div>
+      <StockSearchForm
+        idPrefix="generator"
+        stocks={stocks}
+        stockInput={stockInput}
+        stockState={stockState}
+        reportState={reportState}
+        onStockInput={onStockInput}
+        onCreate={onCreate}
+        buttonLabel="무료 리포트 생성하기"
+      />
+      {message && <p className="generator-status">{message}</p>}
+      <ReportResult report={report} reportState={reportState} selectedStockLabel={selectedStockLabel} />
+    </section>
+  )
+}
+
+function ReportResult({
+  report,
+  reportState,
+  selectedStockLabel,
+}: {
+  report: Report | null
+  reportState: LoadState
+  selectedStockLabel: string
+}) {
+  if (reportState === 'loading') {
     return (
-      <section className="report-shell loading-panel" ref={refTarget} aria-live="polite">
-        <span className="eyebrow">AI Brief Loading</span>
-        <h2>오늘 볼 뉴스 방향을 정리하고 있습니다.</h2>
-        <div className="loading-track">
-          {analysisSteps.map((step, index) => (
-            <div className="loading-step" key={step}>
-              <span>{index + 1}</span>
-              <strong>{step}</strong>
-            </div>
-          ))}
-        </div>
-      </section>
+      <div className="report-result loading-result" aria-live="polite">
+        {loadingSteps.map((step, index) => (
+          <div className="loading-row" key={step}>
+            <span>{index + 1}</span>
+            <strong>{step}</strong>
+          </div>
+        ))}
+      </div>
     )
   }
 
   if (!report) {
     return (
-      <section className="report-shell empty-panel" ref={refTarget}>
-        <span className="eyebrow">Step 2. 리포트 확인</span>
-        <h2>{selectedStockLabel || '관심 종목'}의 오늘 판단 카드가 이곳에 표시됩니다.</h2>
-        <p>
-          생성 버튼을 누르면 오늘 뉴스 방향, 가격 영향, 체크 이벤트, 참고 뉴스가 한 화면에 정리됩니다.
-        </p>
-      </section>
+      <div className="report-result empty-result">
+        <span>REPORT OUTPUT</span>
+        <h3>{selectedStockLabel || '관심 종목'} 리포트가 여기에 표시됩니다.</h3>
+        <p>종합 판단, 핵심 뉴스, 뉴스 요약, 판단 근거, 체크 포인트를 카드형으로 보여드립니다.</p>
+      </div>
     )
   }
 
+  const topNews = report.referencedNews.slice(0, 5)
+
   return (
-    <section className="report-shell" ref={refTarget} aria-labelledby="report-title">
-      <div className="report-hero">
+    <article className="report-result" aria-label="AI 리포트 결과">
+      <div className="report-header-row">
         <div>
-          <span className="eyebrow">Report #{report.reportId ?? 'new'}</span>
-          <h2 id="report-title">{report.stockName} 오늘의 AI 브리프</h2>
+          <span>AI NEWS BRIEF</span>
+          <h3>{report.stockName} 오늘의 리포트</h3>
           <p>{report.reportDate}</p>
         </div>
-      </div>
-
-      <div className="decision-board">
-        <div className={`impact-score ${impactTone(report.newsImpactScore)}`}>
-          <span>오늘 뉴스 방향</span>
+        <div className={`judgement-badge ${impactTone(report.newsImpactScore)}`}>
+          <span>종합 판단</span>
           <strong>{impactLabel(report.newsImpactScore)}</strong>
           <em>{formatScore(report.newsImpactScore)}</em>
           <div className="impact-meter" aria-hidden="true">
             <i style={{ left: scorePosition(report.newsImpactScore) }} />
           </div>
         </div>
+      </div>
 
-        <div className={`summary-strip ${sentimentTone(report.overallSentiment)}`}>
-          <span className={`sentiment-pill ${sentimentTone(report.overallSentiment)}`}>
-            {normalizeSentiment(report.overallSentiment)}
-          </span>
-          <strong>핵심 판단</strong>
+      <div className="report-main-grid">
+        <section className="report-summary-card">
+          <span>뉴스 요약</span>
           <p>{report.briefSummary}</p>
-        </div>
-
-        <section
-          className={`price-impact ${sentimentTone(report.priceImpact.direction)}`}
-          aria-label="가격 영향 가능성"
-        >
-          <span className="section-kicker">가격 영향 가능성</span>
-          <strong>
-            {directionLabels[report.priceImpact.direction] ?? report.priceImpact.direction}
-          </strong>
-          <span className="confidence-chip">
-            신뢰도 {confidenceLabels[report.priceImpact.confidence] ?? report.priceImpact.confidence}
-          </span>
+        </section>
+        <section className={`impact-card ${sentimentTone(report.priceImpact.direction)}`}>
+          <span>가격 영향 포인트</span>
+          <strong>{report.priceImpact.direction}</strong>
           <p>{report.priceImpact.reason}</p>
         </section>
       </div>
 
-      <section className="analysis-panel" aria-label="AI 종합 분석">
-        <div className="section-title-row">
-          <h3>AI 종합 분석</h3>
-          <span>호재 · 중립 · 부담 요인</span>
+      <section className="report-block">
+        <div className="block-title-row">
+          <h4>핵심 뉴스 목록</h4>
+          <span>{topNews.length}건</span>
         </div>
-        {report.sentimentAnalyses.length > 0 ? (
-          <div className="analysis-grid">
-            {report.sentimentAnalyses.map((analysis) => (
-              <SentimentAnalysisCard analysis={analysis} key={analysis.sentiment} />
-            ))}
-          </div>
-        ) : (
-          <p className="empty-copy">표시할 종합 분석이 없습니다.</p>
-        )}
+        <div className="core-news-list">
+          {topNews.map((news) => (
+            <a href={news.url} target="_blank" rel="noreferrer" key={`${news.title}-${news.url}`}>
+              <span>{newsTypeLabels[news.newsType] ?? news.newsType}</span>
+              <strong>{news.title}</strong>
+              <small>{news.source} · {formatDateTime(news.publishedAt)}</small>
+            </a>
+          ))}
+        </div>
       </section>
 
-      <ReferencedNewsList items={report.referencedNews} />
-
-      <section className="events-panel" aria-label="AI 체크 이벤트">
-        <div className="section-title-row dark">
-          <h3>AI 체크 이벤트</h3>
-          <span>이벤트 후보 검색 반영</span>
+      <section className="report-block">
+        <div className="block-title-row">
+          <h4>호재·악재·중립 판단 근거</h4>
         </div>
-        {report.checkEvents.length > 0 ? (
-          <div className="event-list">
-            {report.checkEvents.map((event) => (
-              <article className="event-item" key={`${event.date}-${event.event}`}>
+        <div className="reason-grid">
+          {report.sentimentAnalyses.map((analysis) => (
+            <AnalysisReasonCard analysis={analysis} key={analysis.sentiment} />
+          ))}
+        </div>
+      </section>
+
+      <section className="report-block">
+        <div className="block-title-row">
+          <h4>투자자가 체크할 포인트</h4>
+          <span>{report.checkEvents.length || 'AI 정리'}</span>
+        </div>
+        <div className="check-list">
+          {report.checkEvents.length > 0 ? (
+            report.checkEvents.map((event) => (
+              <div key={`${event.date}-${event.event}`}>
                 <time>{eventDateLabel(event.date)}</time>
-                <div>
-                  <strong>{event.event}</strong>
-                  <p>{event.whyImportant}</p>
-                </div>
-              </article>
-            ))}
-          </div>
-        ) : (
-          <p className="empty-copy">오늘 표시할 체크 이벤트가 없습니다.</p>
-        )}
+                <strong>{event.event}</strong>
+                <p>{event.whyImportant}</p>
+              </div>
+            ))
+          ) : (
+            <p>오늘 표시할 체크 포인트가 없습니다.</p>
+          )}
+        </div>
       </section>
 
-      {report.caution?.trim() && <p className="caution-box">{report.caution}</p>}
-    </section>
+      <p className="report-disclaimer">본 리포트는 뉴스 기반 정보 정리이며, 투자 판단은 본인의 책임입니다.</p>
+    </article>
   )
 }
 
-function SentimentAnalysisCard({ analysis }: { analysis: ReportSentimentAnalysis }) {
+function AnalysisReasonCard({ analysis }: { analysis: ReportSentimentAnalysis }) {
   return (
-    <article className={`analysis-card ${sentimentTone(analysis.sentiment)}`}>
-      <span className={`sentiment-pill ${sentimentTone(analysis.sentiment)}`}>
-        {normalizeSentiment(analysis.sentiment)}
-      </span>
+    <article className={`reason-card ${sentimentTone(analysis.sentiment)}`}>
+      <span>{normalizeSentiment(analysis.sentiment)}</span>
       <p>{analysis.summary}</p>
       {analysis.keyPoints.length > 0 && (
         <ul>
@@ -605,71 +650,53 @@ function SentimentAnalysisCard({ analysis }: { analysis: ReportSentimentAnalysis
           ))}
         </ul>
       )}
-      {analysis.relatedNewsTitles.length > 0 && (
-        <div className="related-news">
-          <strong>관련 참고 뉴스 {analysis.relatedNewsTitles.length}건</strong>
-          {analysis.relatedNewsTitles.slice(0, 2).map((title) => (
-            <span key={title}>{title}</span>
-          ))}
-          {analysis.relatedNewsTitles.length > 2 && (
-            <em>외 {analysis.relatedNewsTitles.length - 2}건</em>
-          )}
-        </div>
-      )}
     </article>
   )
 }
 
-function ReferencedNewsList({ items }: { items: ReportReferencedNews[] }) {
+function LimitModal({ visible, onBetaClick }: { visible: boolean; onBetaClick: () => void }) {
+  if (!visible) {
+    return null
+  }
+
   return (
-    <section className="news-panel" aria-label="참고 뉴스">
-      <div className="section-title-row">
-        <h3>참고 뉴스</h3>
-        <span>{items.length}건</span>
+    <section className="limit-panel" role="alert" aria-labelledby="limit-title">
+      <div>
+        <span className="eyebrow">Limit</span>
+        <h2 id="limit-title">다른 종목도 확인하고 싶으신가요?</h2>
+        <p>
+          현재 무료 리포트는 IP당 1회 제공됩니다. 더 많은 종목과 매일 업데이트 리포트를
+          사용해보고 싶다면 이메일을 남겨주세요.
+        </p>
       </div>
-      {items.length > 0 ? (
-        <div className="news-list">
-          {items.map((item) => (
-            <article className="news-item" key={`${item.title}-${item.url}`}>
-              <div className="news-item-top">
-                <span className="signal-badge neutral">
-                  {newsTypeLabels[item.newsType] ?? item.newsType}
-                </span>
-                <span>{formatDateTime(item.publishedAt)}</span>
-              </div>
-              <a href={item.url} target="_blank" rel="noreferrer">
-                {item.title}
-              </a>
-              <small>{item.source}</small>
-            </article>
-          ))}
-        </div>
-      ) : (
-        <p className="empty-copy">표시할 뉴스가 없습니다.</p>
-      )}
+      <button className="primary-button" type="button" onClick={onBetaClick}>
+        베타 테스트 신청하기
+      </button>
     </section>
   )
 }
 
-function FeedbackForm({
+function FeedbackSection({
+  refTarget,
   report,
   selectedStockLabel,
+  forceVisible,
 }: {
+  refTarget: RefObject<HTMLElement | null>
   report: Report | null
   selectedStockLabel: string
+  forceVisible: boolean
 }) {
   const [feedback, setFeedback] = useState<FeedbackState>(initialFeedback)
   const [submitState, setSubmitState] = useState<LoadState>('idle')
 
-  if (!report) {
-    return null
-  }
+  const visible = Boolean(report) || forceVisible
 
   const updateSingle = (key: keyof FeedbackState, value: string) => {
     setFeedback((current) => ({ ...current, [key]: value }))
   }
 
-  const toggleMulti = (key: 'mostUseful' | 'painPoints', value: string) => {
+  const toggleMulti = (key: 'mostUseful' | 'missing', value: string) => {
     setFeedback((current) => {
       const values = current[key]
       const nextValues = values.includes(value)
@@ -690,13 +717,13 @@ function FeedbackForm({
         stockName: report?.stockName ?? selectedStockLabel,
         reportId: report?.reportId ?? null,
         reportDate: report?.reportDate ?? '',
-        lossAvoidanceHelp: feedback.lossAvoidanceHelp,
-        informationGapReduced: feedback.informationGapReduced,
-        trustScore: feedback.trustScore,
+        lossAvoidanceHelp: feedback.helpful,
+        informationGapReduced: '',
+        trustScore: '',
         mostUseful: feedback.mostUseful,
-        painPoints: feedback.painPoints,
+        painPoints: feedback.missing,
         reuseIntent: feedback.reuseIntent,
-        willingnessToPay: feedback.willingnessToPay,
+        willingnessToPay: '',
         comment: feedback.comment,
       })
       setSubmitState('success')
@@ -707,66 +734,38 @@ function FeedbackForm({
   }
 
   return (
-    <section className="feedback-section" aria-labelledby="feedback-title">
-      <div className="section-heading compact">
-        <span className="eyebrow">Feedback</span>
-        <h2 id="feedback-title">방금 본 AI 브리프가 실제로 도움이 되었나요?</h2>
-        <p>10초만에 선택해주세요. 이후 버전 개선에 반영됩니다.</p>
+    <section className={`feedback-section ${visible ? '' : 'is-muted'}`} ref={refTarget} aria-labelledby="feedback-title">
+      <div className="section-heading">
+        <span className="eyebrow">Beta Feedback</span>
+        <h2 id="feedback-title">방금 받은 AI 브리프, 실제로 도움이 되었나요?</h2>
+        <p>10초만 선택해주세요. 이후 버전 개선에 반영됩니다.</p>
       </div>
 
       <form className="feedback-form" onSubmit={handleSubmit}>
-        {singleChoiceQuestions.map((item) => (
-          <fieldset className="feedback-group" key={item.id}>
-            <legend>{item.question}</legend>
-            <div className="choice-row">
-              {item.options.map((option) => (
-                <button
-                  className="choice-button"
-                  type="button"
-                  aria-pressed={feedback[item.id] === option}
-                  key={option}
-                  onClick={() => updateSingle(item.id, option)}
-                >
-                  {option}
-                </button>
-              ))}
-            </div>
-          </fieldset>
-        ))}
-
-        <fieldset className="feedback-group">
-          <legend>어떤 부분이 가장 유용했나요?</legend>
-          <div className="choice-row">
-            {usefulOptions.map((option) => (
-              <button
-                className="choice-button"
-                type="button"
-                aria-pressed={feedback.mostUseful.includes(option)}
-                key={option}
-                onClick={() => toggleMulti('mostUseful', option)}
-              >
-                {option}
-              </button>
-            ))}
-          </div>
-        </fieldset>
-
-        <fieldset className="feedback-group">
-          <legend>어떤 부분이 부족했나요?</legend>
-          <div className="choice-row">
-            {painPointOptions.map((option) => (
-              <button
-                className="choice-button"
-                type="button"
-                aria-pressed={feedback.painPoints.includes(option)}
-                key={option}
-                onClick={() => toggleMulti('painPoints', option)}
-              >
-                {option}
-              </button>
-            ))}
-          </div>
-        </fieldset>
+        <FeedbackChoice
+          title="Q1. 리포트가 도움이 되었나요?"
+          options={['매우 도움됨', '도움됨', '보통', '도움 안 됨']}
+          selected={feedback.helpful}
+          onSelect={(value) => updateSingle('helpful', value)}
+        />
+        <FeedbackChoice
+          title="Q2. 가장 유용했던 부분은 무엇인가요?"
+          options={usefulOptions}
+          selectedValues={feedback.mostUseful}
+          onToggle={(value) => toggleMulti('mostUseful', value)}
+        />
+        <FeedbackChoice
+          title="Q3. 부족했던 부분은 무엇인가요?"
+          options={missingOptions}
+          selectedValues={feedback.missing}
+          onToggle={(value) => toggleMulti('missing', value)}
+        />
+        <FeedbackChoice
+          title="Q4. 다시 사용해보고 싶나요?"
+          options={['매일 받고 싶음', '이슈 있을 때만', '가끔 확인', '잘 모르겠음']}
+          selected={feedback.reuseIntent}
+          onSelect={(value) => updateSingle('reuseIntent', value)}
+        />
 
         <div className="feedback-fields">
           <label>
@@ -779,10 +778,10 @@ function FeedbackForm({
             />
           </label>
           <label>
-            추가로 남기고 싶은 의견이 있다면 적어주세요.
+            자유 의견
             <textarea
               value={feedback.comment}
-              placeholder="어떤 정보가 더 있으면 돈을 낼 만할지, 어떤 분석이 더 신뢰될지 등을 남겨주세요."
+              placeholder="어떤 정보가 있으면 돈을 내고 쓸 만한지, 어떤 분석이 신뢰되는지 남겨주세요."
               onChange={(event) => updateSingle('comment', event.target.value)}
             />
           </label>
@@ -790,15 +789,58 @@ function FeedbackForm({
 
         <div className="feedback-submit-row">
           <button className="primary-button" type="submit" disabled={submitState === 'loading'}>
-            {submitState === 'loading' ? '저장 중...' : '피드백 제출하기'}
+            {submitState === 'loading' ? '제출 중...' : '피드백 제출하고 베타 신청하기'}
           </button>
-          {submitState === 'success' && (
-            <p>의견이 저장되었습니다. 다음 버전에서는 신뢰도와 가격 영향 근거를 더 강화해보겠습니다.</p>
-          )}
+          {submitState === 'success' && <p>피드백이 저장되었습니다.</p>}
           {submitState === 'error' && <p>피드백 저장 중 문제가 발생했습니다.</p>}
         </div>
       </form>
     </section>
+  )
+}
+
+function FeedbackChoice({
+  title,
+  options,
+  selected,
+  selectedValues,
+  onSelect,
+  onToggle,
+}: {
+  title: string
+  options: string[]
+  selected?: string
+  selectedValues?: string[]
+  onSelect?: (value: string) => void
+  onToggle?: (value: string) => void
+}) {
+  return (
+    <fieldset className="feedback-group">
+      <legend>{title}</legend>
+      <div className="choice-row">
+        {options.map((option) => {
+          const active = selected === option || Boolean(selectedValues?.includes(option))
+
+          return (
+            <button
+              className="choice-button"
+              type="button"
+              aria-pressed={active}
+              key={option}
+              onClick={() => {
+                if (onToggle) {
+                  onToggle(option)
+                  return
+                }
+                onSelect?.(option)
+              }}
+            >
+              {option}
+            </button>
+          )
+        })}
+      </div>
+    </fieldset>
   )
 }
 
