@@ -1,0 +1,7 @@
+.env
+.gradle
+build
+bin
+.DS_Store
+HELP.md
+docker-compose.yml
