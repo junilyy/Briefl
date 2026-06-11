@@ -35,7 +35,7 @@ class OpenAiAnalysisServiceTest {
         AiAnalysisResult result = service.analyze("삼성전자", sampleNewsSearchResult());
 
         assertThat(result.stockName()).isEqualTo("삼성전자");
-        assertThat(result.overallSentiment()).isEqualTo("중립");
+        assertThat(result.overallSentiment()).isEqualTo("방향 불명확");
         assertThat(result.newsImpactScore()).isEqualTo(0.0);
         assertThat(result.sentimentAnalyses()).hasSize(3);
         assertThat(result.sentimentAnalyses().get(0).relatedNewsTitles())
@@ -69,7 +69,7 @@ class OpenAiAnalysisServiceTest {
                                       "content": [
                                         {
                                           "type": "output_text",
-                                          "text": "```json\\n{\\n  \\"stockName\\": \\"삼성전자\\",\\n  \\"briefSummary\\": \\"반도체 뉴스가 긍정 요인으로 정리됩니다.\\",\\n  \\"overallSentiment\\": \\"호재 우세\\",\\n  \\"newsImpactScore\\": 0.3,\\n  \\"priceImpact\\": {\\n    \\"direction\\": \\"상승 요인 우세\\",\\n    \\"confidence\\": \\"중간\\",\\n    \\"reason\\": \\"AI 반도체 수요 관련 뉴스가 긍정적으로 작용할 수 있습니다.\\"\\n  },\\n  \\"sentimentAnalyses\\": [\\n    {\\n      \\"sentiment\\": \\"호재\\",\\n      \\"summary\\": \\"AI 수요가 긍정적으로 언급됩니다.\\",\\n      \\"keyPoints\\": [\\"AI 반도체 수요\\"],\\n      \\"relatedNewsTitles\\": [\\"삼성전자 AI 반도체 수요 확대\\"]\\n    }\\n  ],\\n  \\"checkEvents\\": [\\n    {\\n      \\"date\\": null,\\n      \\"event\\": \\"반도체 업황 코멘트 확인\\",\\n      \\"whyImportant\\": \\"향후 수요 전망 확인이 필요합니다.\\"\\n    }\\n  ],\\n  \\"caution\\": \\"본 리포트는 투자 판단을 보조하기 위한 정보 정리이며, 매수·매도 추천이 아닙니다.\\"\\n}\\n```"
+                                          "text": "```json\\n{\\n  \\"stockName\\": \\"삼성전자\\",\\n  \\"briefSummary\\": \\"반도체 뉴스가 긍정 요인으로 정리됩니다.\\",\\n  \\"overallSentiment\\": \\"호재 우세\\",\\n  \\"newsImpactScore\\": 0.3,\\n  \\"priceImpact\\": {\\n    \\"direction\\": \\"상승 요인 우세\\",\\n    \\"confidence\\": \\"중간\\",\\n    \\"reason\\": \\"AI 반도체 수요 관련 뉴스가 긍정적으로 작용할 수 있습니다.\\"\\n  },\\n  \\"sentimentAnalyses\\": [\\n    {\\n      \\"sentiment\\": \\"호재\\",\\n      \\"summary\\": \\"AI 수요가 긍정적으로 언급됩니다.\\",\\n      \\"keyPoints\\": [\\"AI 반도체 수요\\"],\\n      \\"relatedNewsTitles\\": [\\"삼성전자 AI 반도체 수요 확대\\"]\\n    }\\n  ],\\n  \\"checkEvents\\": [\\n    {\\n      \\"date\\": null,\\n      \\"event\\": \\"반도체 업황 코멘트 확인\\",\\n      \\"whyImportant\\": \\"향후 수요 전망 확인이 필요합니다.\\"\\n    }\\n  ],\\n  \\"caution\\": \\"\\"\\n}\\n```"
                                         }
                                       ]
                                     }
@@ -110,6 +110,14 @@ class OpenAiAnalysisServiceTest {
                         "미국 금리 동결 가능성 확대",
                         "미국 금리 동결 가능성이 확대되고 있다는 뉴스입니다.",
                         "https://example.com/indirect",
+                        "example.com",
+                        LocalDateTime.now(),
+                        NewsType.INDIRECT
+                )),
+                List.of(new NewsItemDto(
+                        "삼성전자 실적 발표 일정 확인",
+                        "삼성전자 실적 발표 일정이 예정되어 있다는 뉴스입니다.",
+                        "https://example.com/event",
                         "example.com",
                         LocalDateTime.now(),
                         NewsType.INDIRECT

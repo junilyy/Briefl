@@ -4,6 +4,7 @@ import java.util.List;
 
 public record NewsSearchResult(
         List<NewsItemDto> directNews,
-        List<NewsItemDto> indirectNews
+        List<NewsItemDto> indirectNews,
+        List<NewsItemDto> eventNews
 ) {
 }

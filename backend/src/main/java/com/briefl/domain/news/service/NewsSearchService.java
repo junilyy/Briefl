@@ -45,6 +45,7 @@ public class NewsSearchService {
 
     private static final int DIRECT_NEWS_LIMIT = 5;
     private static final int INDIRECT_NEWS_LIMIT = 5;
+    private static final int EVENT_NEWS_LIMIT = 5;
     private static final int SEARCH_DISPLAY_SIZE = 10;
     private static final ZoneId SEOUL_ZONE = ZoneId.of("Asia/Seoul");
     private static final TypeReference<List<String>> STRING_LIST_TYPE = new TypeReference<>() {
@@ -72,8 +73,33 @@ public class NewsSearchService {
                 stock.getStockName(),
                 normalizedTitles(directNews)
         );
+        Set<String> excludedTitles = normalizedTitles(directNews);
+        excludedTitles.addAll(normalizedTitles(indirectNews));
+        List<NewsItemDto> eventNews = collectEventNews(
+                stock.getStockName(),
+                stock.getMarket(),
+                excludedTitles
+        );
 
-        return new NewsSearchResult(directNews, indirectNews);
+        return new NewsSearchResult(directNews, indirectNews, eventNews);
+    }
+
+    private List<NewsItemDto> collectEventNews(String stockName, String market, Set<String> excludedTitles) {
+        List<String> eventKeywords = List.of(
+                stockName + " 실적 발표",
+                stockName + " IR 일정",
+                stockName + " 컨퍼런스",
+                stockName + " 주주총회",
+                stockName + " " + market + " 주요 일정"
+        );
+
+        return collectTodayNews(
+                eventKeywords,
+                NewsType.INDIRECT,
+                EVENT_NEWS_LIMIT,
+                stockName,
+                excludedTitles
+        );
     }
 
     private List<NewsItemDto> collectTodayNews(
