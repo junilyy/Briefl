@@ -35,13 +35,20 @@ const sentimentLabels: Record<string, string> = {
   POSITIVE: '호재',
   NEUTRAL: '중립',
   NEGATIVE: '악재 가능성',
+  '악재 가능성': '부담 요인',
+  '부담 요인': '부담 요인',
 }
 
 const directionLabels: Record<string, string> = {
   UP: '상승 요인 우세',
   DOWN: '하락 리스크 존재',
-  NEUTRAL: '중립',
-  MIXED: '혼조',
+  NEUTRAL: '방향 불명확',
+  MIXED: '변동성 주의',
+  중립: '방향 불명확',
+  혼조: '변동성 주의',
+  '판단 어려움': '방향 불명확',
+  '상승 요인 우세': '긍정 요인 우세',
+  '하락 리스크 존재': '부담 요인 우세',
 }
 
 const confidenceLabels: Record<string, string> = {
@@ -80,7 +87,7 @@ const whyCards = [
     label: '판단 근거',
     title: '남의 말보다 내 판단 근거가 필요합니다',
     copy:
-      '브리플은 매수·매도 판단이 아니라 참고 뉴스, 영향 요인, 체크 이벤트를 정리해 스스로 판단할 근거를 남깁니다.',
+      '브리플은 참고 뉴스, 영향 요인, 체크 이벤트를 한 번에 정리해 오늘 무엇을 먼저 봐야 할지 보여줍니다.',
   },
 ]
 
@@ -128,15 +135,69 @@ function formatScore(value: number | undefined) {
     return '-'
   }
 
-  return value.toFixed(1)
+  return value > 0 ? `+${value.toFixed(1)}` : value.toFixed(1)
 }
 
-function sentimentTone(value: string) {
-  if (value.includes('호재') || value.includes('상승') || value === 'POSITIVE') {
+function impactTone(value: number | undefined) {
+  if (value === undefined || Number.isNaN(value)) {
+    return 'neutral'
+  }
+
+  if (value >= 0.2) {
     return 'positive'
   }
 
-  if (value.includes('악재') || value.includes('하락') || value === 'NEGATIVE') {
+  if (value <= -0.2) {
+    return 'negative'
+  }
+
+  return 'neutral'
+}
+
+function impactLabel(value: number | undefined) {
+  if (value === undefined || Number.isNaN(value)) {
+    return '방향 정보 없음'
+  }
+
+  if (value >= 0.6) {
+    return '긍정 요인 우세'
+  }
+
+  if (value >= 0.2) {
+    return '긍정 요인 약간 우세'
+  }
+
+  if (value <= -0.6) {
+    return '부담 요인 우세'
+  }
+
+  if (value <= -0.2) {
+    return '부담 요인 약간 우세'
+  }
+
+  return '방향 불명확'
+}
+
+function scorePosition(value: number | undefined) {
+  if (value === undefined || Number.isNaN(value)) {
+    return '50%'
+  }
+
+  const clamped = Math.max(-1, Math.min(1, value))
+  return `${((clamped + 1) / 2) * 100}%`
+}
+
+function sentimentTone(value: string) {
+  if (value.includes('호재') || value.includes('상승') || value.includes('긍정') || value === 'POSITIVE') {
+    return 'positive'
+  }
+
+  if (
+    value.includes('악재') ||
+    value.includes('하락') ||
+    value.includes('부담') ||
+    value === 'NEGATIVE'
+  ) {
     return 'negative'
   }
 
@@ -280,7 +341,6 @@ function App() {
               왜 필요한지 보기
             </a>
           </div>
-          <p className="safety-note">투자 추천이 아닌 뉴스 해석 보조 서비스입니다.</p>
         </div>
 
         <StockConsole
@@ -447,13 +507,17 @@ function ReportDashboard({
           <h2 id="report-title">{report.stockName} 오늘의 AI 브리프</h2>
           <p>{report.reportDate}</p>
         </div>
-        <div className="impact-score">
-          <span>뉴스 영향 점수</span>
-          <strong>{formatScore(report.newsImpactScore)}</strong>
+        <div className={`impact-score ${impactTone(report.newsImpactScore)}`}>
+          <span>오늘 뉴스 방향</span>
+          <strong>{impactLabel(report.newsImpactScore)}</strong>
+          <em>{formatScore(report.newsImpactScore)}</em>
+          <div className="impact-meter" aria-hidden="true">
+            <i style={{ left: scorePosition(report.newsImpactScore) }} />
+          </div>
         </div>
       </div>
 
-      <div className="summary-strip">
+      <div className={`summary-strip ${sentimentTone(report.overallSentiment)}`}>
         <span className={`sentiment-pill ${sentimentTone(report.overallSentiment)}`}>
           {normalizeSentiment(report.overallSentiment)}
         </span>
@@ -477,7 +541,10 @@ function ReportDashboard({
           )}
         </section>
 
-        <section className="price-impact" aria-label="가격 영향 가능성">
+        <section
+          className={`price-impact ${sentimentTone(report.priceImpact.direction)}`}
+          aria-label="가격 영향 가능성"
+        >
           <span className="section-kicker">가격 영향 가능성</span>
           <strong>
             {directionLabels[report.priceImpact.direction] ?? report.priceImpact.direction}
@@ -494,7 +561,7 @@ function ReportDashboard({
       <section className="events-panel" aria-label="AI 체크 이벤트">
         <div className="section-title-row dark">
           <h3>AI 체크 이벤트</h3>
-          <span>참고 뉴스 맥락에서 도출</span>
+          <span>이벤트 후보 검색 반영</span>
         </div>
         {report.checkEvents.length > 0 ? (
           <div className="event-list">
@@ -513,7 +580,7 @@ function ReportDashboard({
         )}
       </section>
 
-      <p className="caution-box">{report.caution}</p>
+      {report.caution?.trim() && <p className="caution-box">{report.caution}</p>}
     </section>
   )
 }
