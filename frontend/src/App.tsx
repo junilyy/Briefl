@@ -269,16 +269,14 @@ function TopNav() {
     <nav className="top-nav" aria-label="브리플">
       <a className="brand" href="#page-title" aria-label="BRIEFL 홈">
         <span className="brand-mark" aria-hidden="true">
-          B
+          <span />
         </span>
         <span className="brand-copy">
           <span className="brand-name">BRIEFL</span>
-          <span className="brand-subtitle">AI Stock Brief</span>
+          <span className="brand-subtitle">브리플</span>
         </span>
       </a>
-      <a className="nav-link" href="#report-generator">
-        무료 리포트 생성
-      </a>
+      <span className="nav-status">AI News Risk Radar</span>
     </nav>
   )
 }
@@ -304,7 +302,10 @@ function HeroSection({
     <section className="hero-section" aria-labelledby="page-title">
       <div className="hero-copy">
         <span className="eyebrow">AI 기반 관심 주식 뉴스 분석</span>
-        <h1 id="page-title">내 주식 떨어지고 나서야 악재 뉴스를 찾고 있나요?</h1>
+        <h1 id="page-title">
+          <span>내 주식 떨어지고 나서야</span>
+          <span>악재 뉴스를 찾고 있나요?</span>
+        </h1>
         <p>
           관심 종목을 입력하면 오늘 나온 뉴스를 AI가 모아 호재·악재·중립 가능성과 가격 영향
           포인트를 1분 만에 정리해드립니다.
@@ -331,29 +332,54 @@ function HeroPreviewCard() {
   return (
     <aside className="preview-card" aria-label="AI 리포트 미리보기">
       <div className="preview-top">
-        <span>AI REPORT PREVIEW</span>
+        <span>LIVE BRIEF PREVIEW</span>
         <strong>삼성전자</strong>
       </div>
-      <div className="preview-judgement negative">
-        <span>종합 판단</span>
-        <strong>악재 가능성 주의</strong>
-        <p>수요 둔화 기사와 경쟁사 이슈가 함께 등장했습니다.</p>
+
+      <div className="risk-headline">
+        <div>
+          <span>오늘의 종합 판단</span>
+          <strong>악재 신호 우세</strong>
+        </div>
+        <b>72</b>
       </div>
-      <div className="mini-chart" aria-hidden="true">
-        <i />
-        <i />
-        <i />
-        <i />
-        <i />
+
+      <div className="signal-summary" aria-label="뉴스 신호 요약">
+        <div>
+          <span className="signal-dot negative" />
+          <strong>2</strong>
+          <small>악재</small>
+        </div>
+        <div>
+          <span className="signal-dot neutral" />
+          <strong>1</strong>
+          <small>중립</small>
+        </div>
+        <div>
+          <span className="signal-dot positive" />
+          <strong>1</strong>
+          <small>호재</small>
+        </div>
       </div>
-      <div className="preview-news-list">
-        <span className="news-line negative">경쟁사 신제품 출시</span>
-        <span className="news-line neutral">환율 변동성 확대</span>
-        <span className="news-line positive">메모리 업황 회복 기대</span>
+
+      <div className="preview-news-list" aria-label="핵심 뉴스 신호">
+        <div className="news-line negative">
+          <span>악재</span>
+          <strong>경쟁사 신제품 출시로 점유율 압박 가능성</strong>
+        </div>
+        <div className="news-line neutral">
+          <span>중립</span>
+          <strong>환율 변동성 확대, 실적 영향은 추가 확인 필요</strong>
+        </div>
+        <div className="news-line positive">
+          <span>호재</span>
+          <strong>메모리 업황 회복 기대는 하단 방어 요인</strong>
+        </div>
       </div>
+
       <div className="preview-check">
-        <span>체크 포인트</span>
-        <strong>실적 발표 전 수요 전망 코멘트 확인</strong>
+        <span>투자자가 바로 볼 것</span>
+        <strong>실적 발표 전 수요 전망과 경쟁사 가격 전략</strong>
       </div>
     </aside>
   )
