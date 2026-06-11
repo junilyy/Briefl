@@ -205,13 +205,6 @@
   outline-offset: 3px;
 }
 
-.safety-note {
-  margin-top: 16px !important;
-  color: var(--color-subtle) !important;
-  font-size: 14px !important;
-  font-weight: 700;
-}
-
 .stock-console {
   display: grid;
   align-content: start;
@@ -459,26 +452,70 @@
 }
 
 .impact-score {
-  min-width: 158px;
+  min-width: 220px;
   padding: 18px;
   border-radius: 14px;
-  background: #0f172a;
-  color: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(71, 85, 105, 0.14);
+  background: #f8fafc;
+  color: #475569;
   text-align: right;
+}
+
+.impact-score.positive {
+  border-color: rgba(15, 118, 110, 0.24);
+  background: #ecfdf5;
+  color: #0f766e;
+}
+
+.impact-score.negative {
+  border-color: rgba(185, 28, 28, 0.22);
+  background: #fff1f2;
+  color: #b91c1c;
 }
 
 .impact-score span {
   display: block;
-  margin-bottom: 10px;
-  color: #bfdbfe;
+  margin-bottom: 8px;
+  color: currentColor;
   font-size: 12px;
   font-weight: 900;
+  opacity: 0.74;
 }
 
 .impact-score strong {
   display: block;
-  font-size: 38px;
-  line-height: 1;
+  font-size: 22px;
+  line-height: 1.24;
+  letter-spacing: -0.02em;
+}
+
+.impact-score em {
+  display: block;
+  margin-top: 6px;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 900;
+  opacity: 0.8;
+}
+
+.impact-meter {
+  position: relative;
+  height: 8px;
+  margin-top: 14px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #ef4444 0%, #cbd5e1 50%, #10b981 100%);
+}
+
+.impact-meter i {
+  position: absolute;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  border: 3px solid #ffffff;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.18);
+  transform: translate(-50%, -50%);
 }
 
 .summary-strip,
@@ -497,6 +534,16 @@
   display: grid;
   gap: 12px;
   padding: 22px;
+}
+
+.summary-strip.positive {
+  border-color: rgba(15, 118, 110, 0.2);
+  background: #f0fdf4;
+}
+
+.summary-strip.negative {
+  border-color: rgba(185, 28, 28, 0.18);
+  background: #fff1f2;
 }
 
 .summary-strip p {
@@ -572,8 +619,8 @@
 }
 
 .analysis-card.negative {
-  border-color: rgba(180, 83, 9, 0.24);
-  background: #fffdf9;
+  border-color: rgba(185, 28, 28, 0.2);
+  background: #fff7f7;
 }
 
 .sentiment-pill,
@@ -603,8 +650,8 @@
 
 .sentiment-pill.negative,
 .signal-badge.negative {
-  background: rgba(180, 83, 9, 0.12);
-  color: #b45309;
+  background: rgba(185, 28, 28, 0.11);
+  color: #b91c1c;
 }
 
 .analysis-card p {
@@ -677,6 +724,16 @@
   background: #f8fbff;
 }
 
+.price-impact.positive {
+  border-color: rgba(15, 118, 110, 0.2);
+  background: #f0fdf4;
+}
+
+.price-impact.negative {
+  border-color: rgba(185, 28, 28, 0.18);
+  background: #fff1f2;
+}
+
 .section-kicker {
   color: var(--color-subtle);
   font-size: 13px;
@@ -687,6 +744,14 @@
   color: var(--color-primary);
   font-size: 30px;
   line-height: 1.2;
+}
+
+.price-impact.positive strong {
+  color: #0f766e;
+}
+
+.price-impact.negative strong {
+  color: #b91c1c;
 }
 
 .confidence-chip {
