@@ -29,7 +29,7 @@ import org.springframework.web.reactive.function.client.WebClientRequestExceptio
 @RequiredArgsConstructor
 public class OpenAiAnalysisService {
 
-    private static final String CAUTION = "본 리포트는 투자 판단을 보조하기 위한 정보 정리이며, 매수·매도 추천이 아닙니다.";
+    private static final String CAUTION = "";
 
     private final OpenAiProperties openAiProperties;
     private final ExternalApiProperties externalApiProperties;
@@ -53,35 +53,35 @@ public class OpenAiAnalysisService {
 
         return new AiAnalysisResult(
                 stockName,
-                "개발용 mock 분석 결과입니다. 참고 뉴스 목록과 응답 구조 확인용이며, 실제 종합 분석은 OpenAI 실제 호출 모드에서 생성됩니다.",
-                "중립",
+                "현재는 mock 모드라 실제 뉴스 판단은 하지 않습니다. 운영 모드에서는 오늘 뉴스에서 가장 강한 긍정 요인과 부담 요인을 먼저 보여줍니다.",
+                "방향 불명확",
                 0.0,
                 new PriceImpactAnalysis(
-                        "판단 어려움",
+                        "방향 불명확",
                         "낮음",
-                        "현재는 비용 방지를 위한 mock 모드이므로 실제 뉴스의 투자적 의미를 판단하지 않습니다."
+                        "mock 모드에서는 실제 뉴스 의미를 판단하지 않으므로 가격 방향을 정하지 않습니다."
                 ),
                 List.of(
                         new SentimentAnalysis(
                                 "호재",
-                                "mock 모드에서는 참고 뉴스의 긍정 요인을 실제로 판별하지 않습니다.",
-                                List.of("응답 구조와 참고 뉴스 링크 노출 여부를 확인합니다."),
+                                "운영 모드에서는 매출, 수요, 정책, 수급처럼 긍정으로 읽히는 재료만 따로 묶습니다.",
+                                List.of("긍정 재료가 있으면 첫 줄에서 바로 결론을 보여줍니다."),
                                 referencedTitles
                         ),
                         new SentimentAnalysis(
                                 "중립",
-                                "mock 모드에서는 대부분의 뉴스를 중립적 확인 대상으로 둡니다.",
-                                List.of("실제 종합 분석은 AI_ANALYSIS_MODE=openai에서 생성됩니다."),
+                                "방향을 정하기 어려운 뉴스는 확인 포인트로만 남깁니다.",
+                                List.of("실적, 환율, 정책처럼 해석이 갈리는 항목을 분리합니다."),
                                 referencedTitles
                         ),
                         new SentimentAnalysis(
-                                "악재 가능성",
-                                "mock 모드에서는 부정 요인을 실제로 판별하지 않습니다.",
-                                List.of("운영 모드 전환 후 악재 가능성 분석 품질을 확인해야 합니다."),
+                                "부담 요인",
+                                "운영 모드에서는 하락 부담이나 변동성 확대 요인을 따로 묶습니다.",
+                                List.of("경쟁, 비용, 수요 둔화처럼 조심해야 할 재료를 먼저 보여줍니다."),
                                 referencedTitles
                         )
                 ),
-                List.of(new CheckEventAnalysis(null, "OpenAI 실제 분석 모드 전환", "AI가 참고 뉴스 기반 체크 이벤트를 생성하는지 확인해야 합니다.")),
+                List.of(new CheckEventAnalysis(null, "OpenAI 실제 분석 모드 전환", "운영 모드에서는 이벤트 후보 검색 결과까지 함께 보고 체크할 일정을 뽑습니다.")),
                 CAUTION
         );
     }
@@ -148,9 +148,11 @@ public class OpenAiAnalysisService {
 
     private String createSystemPrompt() {
         return """
-                너는 개인 투자자를 위한 주식 뉴스 분석 리포트 생성 도우미다.
-                투자 추천, 매수 추천, 매도 추천, 확정적 가격 예측을 절대 하지 않는다.
-                "가격 예측"이라는 표현 대신 "가격 영향 가능성"이라고 표현한다.
+                너는 개인 투자자를 위한 주식 뉴스 분석 리포트를 작성하는 애널리스트다.
+                사용자는 주식을 잘 모를 수 있으므로 결론을 먼저, 짧고 직관적으로 설명한다.
+                뉴스에 근거한 방향 판단과 주관적 해석은 허용한다.
+                단, 특정 매수/매도 실행 지시와 확정적 가격 예측은 작성하지 않는다.
+                애매하면 애매하다고 끝내지 말고, 왜 애매한지와 무엇을 봐야 하는지를 말한다.
                 응답은 반드시 JSON 객체 하나로만 작성한다.
                 """;
     }
@@ -164,14 +166,22 @@ public class OpenAiAnalysisService {
                 2. 간접 영향 뉴스: 종목명이 직접 등장하지 않지만 산업, 금리, 환율, 전쟁, 정책, 경쟁사 이슈처럼 해당 종목 주가에 영향을 줄 수 있는 뉴스
 
                 참고 뉴스 전체를 바탕으로 다음 기준으로 정리해라.
-                - 기사 하나하나를 평가하지 말고, 호재 / 중립 / 악재 가능성별 종합 분석을 작성
-                - 각 감정 그룹에는 여러 뉴스에서 공통적으로 읽히는 맥락과 핵심 근거를 요약
-                - relatedNewsTitles에는 해당 종합 분석에 실제로 참고한 뉴스 제목만 넣기
-                - checkEvents는 별도 캘린더 API가 아니라, 아래 뉴스에서 언급되었거나 뉴스 맥락상 가까운 시일 내 확인해야 할 이벤트를 AI가 도출
-                - checkEvents의 날짜를 뉴스에서 확인할 수 없으면 null로 둔다
-                - 단, 주가를 단정적으로 예측하지 말고 "영향 가능성"으로 표현
-                - 투자 추천, 매수/매도 지시는 하지 말 것
-                - newsImpactScore는 리포트 전체의 뉴스 영향 방향을 -1.0부터 1.0 사이 숫자로 작성
+                - 기사 하나하나를 평가하지 말고, 호재 / 중립 / 부담 요인별 종합 분석을 작성
+                - 각 감정 그룹은 2문장 이내로 짧게 작성하고, 첫 문장에 결론을 둔다
+                - keyPoints는 사용자가 실제로 봐야 할 체크 포인트만 1~2개 작성한다
+                - relatedNewsTitles에는 해당 종합 분석에 실제로 참고한 뉴스 제목만 넣는다. 모든 뉴스를 반복해서 넣지 않는다
+                - briefSummary는 "오늘 결론 1문장 + 가장 중요한 이유 1문장"으로 작성한다
+                - priceImpact.reason은 긍정 요인, 부담 요인, 오늘 우선 확인할 포인트를 한 문단으로 작성한다
+                - "혼조"라는 단어는 쓰지 말고 "긍정 요인 우세", "부담 요인 우세", "방향 불명확", "변동성 주의" 중 하나로 표현한다
+                - newsImpactScore는 오늘 뉴스 방향을 -1.0부터 1.0 사이 숫자로 작성한다
+                  * 0.6 이상: 긍정 요인 우세
+                  * 0.2 이상 0.6 미만: 긍정 요인 약간 우세
+                  * -0.2 초과 0.2 미만: 방향 불명확
+                  * -0.6 초과 -0.2 이하: 부담 요인 약간 우세
+                  * -0.6 이하: 부담 요인 우세
+                - checkEvents는 이벤트 후보 뉴스까지 참고해 작성한다
+                - checkEvents는 실적 발표, IR, 컨퍼런스, 정책 일정, 섹터 이벤트처럼 앞으로 확인할 일을 작성한다
+                - checkEvents 날짜를 뉴스에서 확인할 수 없으면 null로 둔다
 
                 직접 뉴스:
                 %s
@@ -179,20 +189,23 @@ public class OpenAiAnalysisService {
                 간접 영향 뉴스:
                 %s
 
+                이벤트 후보 검색 결과:
+                %s
+
                 응답은 반드시 아래 JSON 형식과 같은 필드명으로만 작성해라.
                 {
                   "stockName": "",
                   "briefSummary": "",
-                  "overallSentiment": "호재 우세 | 중립 | 악재 리스크 존재 | 혼조",
+                  "overallSentiment": "긍정 요인 우세 | 긍정 요인 약간 우세 | 방향 불명확 | 부담 요인 약간 우세 | 부담 요인 우세 | 변동성 주의",
                   "newsImpactScore": 0.0,
                   "priceImpact": {
-                    "direction": "상승 요인 우세 | 하락 리스크 존재 | 혼조 | 판단 어려움",
+                    "direction": "긍정 요인 우세 | 방향 불명확 | 부담 요인 우세 | 변동성 주의",
                     "confidence": "낮음 | 중간 | 높음",
                     "reason": ""
                   },
                   "sentimentAnalyses": [
                     {
-                      "sentiment": "호재 | 중립 | 악재 가능성",
+                      "sentiment": "호재 | 중립 | 부담 요인",
                       "summary": "",
                       "keyPoints": ["", ""],
                       "relatedNewsTitles": ["", ""]
@@ -211,6 +224,7 @@ public class OpenAiAnalysisService {
                 stockName,
                 formatNews(newsSearchResult.directNews()),
                 formatNews(newsSearchResult.indirectNews()),
+                formatNews(newsSearchResult.eventNews()),
                 CAUTION
         );
     }
@@ -236,7 +250,10 @@ public class OpenAiAnalysisService {
     private List<NewsItemDto> referencedNews(NewsSearchResult newsSearchResult) {
         return java.util.stream.Stream.concat(
                 newsSearchResult.directNews().stream(),
-                newsSearchResult.indirectNews().stream()
+                java.util.stream.Stream.concat(
+                        newsSearchResult.indirectNews().stream(),
+                        newsSearchResult.eventNews().stream()
+                )
         ).toList();
     }
 

@@ -153,6 +153,7 @@ public class ReportService {
         List<NewsItemDto> referencedNews = new ArrayList<>();
         referencedNews.addAll(emptyIfNull(newsSearchResult.directNews()));
         referencedNews.addAll(emptyIfNull(newsSearchResult.indirectNews()));
+        referencedNews.addAll(emptyIfNull(newsSearchResult.eventNews()));
         return referencedNews;
     }
 
