@@ -242,7 +242,7 @@ public class OpenAiAnalysisService {
 
     private AiAnalysisResult parseAnalysisResult(String responseBody) {
         try {
-            String outputText = extractOutputText(responseBody);
+            String outputText = extractJsonObjectText(extractOutputText(responseBody));
             return objectMapper.readValue(outputText, AiAnalysisResult.class);
         } catch (JsonProcessingException | IllegalArgumentException exception) {
             log.warn("Failed to parse OpenAI analysis response. raw={}", responseBody, exception);
@@ -273,5 +273,50 @@ public class OpenAiAnalysisService {
         }
 
         throw new IllegalArgumentException("OpenAI response output text is empty.");
+    }
+
+    private String extractJsonObjectText(String outputText) {
+        int start = outputText.indexOf('{');
+        if (start < 0) {
+            throw new IllegalArgumentException("OpenAI response JSON object is empty.");
+        }
+
+        boolean inString = false;
+        boolean escaped = false;
+        int depth = 0;
+
+        for (int i = start; i < outputText.length(); i++) {
+            char current = outputText.charAt(i);
+
+            if (escaped) {
+                escaped = false;
+                continue;
+            }
+
+            if (current == '\\' && inString) {
+                escaped = true;
+                continue;
+            }
+
+            if (current == '"') {
+                inString = !inString;
+                continue;
+            }
+
+            if (inString) {
+                continue;
+            }
+
+            if (current == '{') {
+                depth++;
+            } else if (current == '}') {
+                depth--;
+                if (depth == 0) {
+                    return outputText.substring(start, i + 1);
+                }
+            }
+        }
+
+        throw new IllegalArgumentException("OpenAI response JSON object is incomplete.");
     }
 }
