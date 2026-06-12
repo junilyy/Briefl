@@ -7,6 +7,12 @@ const FEEDBACK_SHEET_TABLE = 'beta_testers_ver2'
 
 let clientIpPromise: Promise<string> | null = null
 
+const IP_LOOKUP_ENDPOINTS = [
+  'https://jsonip.com?format=json',
+  'https://api.ip.sb/jsonip',
+  'https://api64.ipify.org?format=json',
+]
+
 type ReportFeedbackInput = {
   email: string
   stockName: string
@@ -21,21 +27,33 @@ type ReportFeedbackInput = {
 
 async function getClientIp() {
   if (!clientIpPromise) {
-    clientIpPromise = fetch('https://jsonip.com?format=json')
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`${response.status} ${response.statusText}`)
-        }
-        return response.json() as Promise<{ ip?: string }>
-      })
-      .then((data) => data.ip ?? 'unknown')
-      .catch((error) => {
-        console.warn('IP 조회에 실패했습니다.', error)
-        return 'unknown'
-      })
+    clientIpPromise = lookupClientIp()
   }
 
   return clientIpPromise
+}
+
+async function lookupClientIp() {
+  for (const endpoint of IP_LOOKUP_ENDPOINTS) {
+    try {
+      const response = await fetch(endpoint)
+
+      if (!response.ok) {
+        throw new Error(`${response.status} ${response.statusText}`)
+      }
+
+      const data = await response.json() as { ip?: string }
+
+      if (data.ip) {
+        return data.ip
+      }
+    } catch (error) {
+      console.warn(`IP 조회에 실패했습니다. endpoint=${endpoint}`, error)
+    }
+  }
+
+  clientIpPromise = null
+  return 'unknown'
 }
 
 async function insertGoogleSheetRow(table: string, payload: Record<string, unknown>) {
