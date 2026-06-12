@@ -644,12 +644,23 @@ function ReportResult({
             <strong>{impactLabel(report.newsImpactScore)}</strong>
             <em>{formatScore(report.newsImpactScore)}</em>
           </div>
-          <div className="impact-meter" aria-hidden="true">
-            <i style={{ left: scorePosition(report.newsImpactScore) }} />
-          </div>
-          <div className="impact-meter-labels" aria-hidden="true">
-            <span>-1.0</span>
-            <span>+1.0</span>
+          <div
+            className="impact-meter-wrap"
+            tabIndex={0}
+            aria-label="뉴스 영향 점수 기준: -0.2 이하는 악재, -0.2 초과부터 0.2 미만은 중립, 0.2 이상은 호재입니다."
+          >
+            <div className="impact-meter" aria-hidden="true">
+              <i style={{ left: scorePosition(report.newsImpactScore) }} />
+            </div>
+            <div className="impact-meter-labels" aria-hidden="true">
+              <span>-1.0</span>
+              <span>+1.0</span>
+            </div>
+            <div className="impact-meter-tooltip" aria-hidden="true">
+              <span className="negative">악재 -1.0 ~ -0.2</span>
+              <span className="neutral">중립 -0.2 ~ +0.2</span>
+              <span className="positive">호재 +0.2 ~ +1.0</span>
+            </div>
           </div>
         </div>
       </div>
