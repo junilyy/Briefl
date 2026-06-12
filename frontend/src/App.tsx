@@ -153,7 +153,6 @@ function App() {
     getStocks()
       .then((items) => {
         setStocks(items)
-        setStockInput(stockLabel(items[0], ''))
         setStockState('success')
       })
       .catch((error: Error) => {
