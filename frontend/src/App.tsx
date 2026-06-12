@@ -373,7 +373,7 @@ function HeroPreviewCard() {
           <span>오늘의 종합 판단</span>
           <strong>악재 신호 우세</strong>
         </div>
-        <b>72</b>
+        <b>-0.7</b>
       </div>
 
       <div className="signal-summary" aria-label="뉴스 신호 요약">
@@ -616,7 +616,7 @@ function ReportResult({
   const topNews = report.referencedNews.slice(0, 5)
 
   return (
-    <article className="report-result" aria-label="AI 리포트 결과">
+    <article className="report-result report-output" aria-label="AI 리포트 결과">
       <div className="report-header-row">
         <div>
           <span>AI NEWS BRIEF</span>
