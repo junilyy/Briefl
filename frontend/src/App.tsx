@@ -371,7 +371,7 @@ function HeroPreviewCard() {
   return (
     <aside className="preview-card" aria-label="AI 리포트 미리보기">
       <div className="preview-top">
-        <span>LIVE BRIEF PREVIEW</span>
+        <span>LIVE BRIEF</span>
         <strong>삼성전자</strong>
       </div>
 
@@ -381,6 +381,14 @@ function HeroPreviewCard() {
           <strong>악재 신호 우세</strong>
         </div>
         <b>-0.7</b>
+      </div>
+
+      <div className="preview-risk-meter" aria-label="뉴스 영향 점수 범위">
+        <span>-1.0</span>
+        <div>
+          <i />
+        </div>
+        <span>+1.0</span>
       </div>
 
       <div className="signal-summary" aria-label="뉴스 신호 요약">
@@ -404,11 +412,11 @@ function HeroPreviewCard() {
       <div className="preview-news-list" aria-label="핵심 뉴스 신호">
         <div className="news-line negative">
           <span>악재</span>
-          <strong>경쟁사 신제품 출시로 점유율 압박 가능성</strong>
+          <strong>경쟁사 신제품 출시, 점유율 압박 가능성</strong>
         </div>
         <div className="news-line neutral">
           <span>중립</span>
-          <strong>환율 변동성 확대, 실적 영향은 추가 확인 필요</strong>
+          <strong>환율 변동성 확대, 실적 영향 추가 확인</strong>
         </div>
         <div className="news-line positive">
           <span>호재</span>
