@@ -779,13 +779,13 @@
   gap: 0;
   padding: 0;
   overflow: hidden;
-  border: 1px solid rgba(37, 99, 235, 0.18);
-  border-radius: 22px;
+  border: 1px solid rgba(37, 99, 235, 0.28);
+  border-radius: 28px;
   background:
-    linear-gradient(180deg, rgba(37, 99, 235, 0.08), rgba(255, 255, 255, 0) 220px),
+    linear-gradient(180deg, rgba(2, 6, 23, 0.04), rgba(255, 255, 255, 0) 260px),
     #fff;
   box-shadow:
-    0 26px 80px rgba(37, 99, 235, 0.14),
+    0 30px 90px rgba(15, 23, 42, 0.16),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
@@ -851,11 +851,21 @@
 }
 
 .report-output .report-header-row {
-  padding: 34px 34px 30px;
+  padding: 36px 38px 34px;
   background:
-    radial-gradient(circle at 78% 12%, rgba(14, 165, 233, 0.55), transparent 28%),
-    linear-gradient(135deg, #07111f 0%, #0f2b68 54%, #1d4ed8 100%);
+    radial-gradient(circle at 76% 6%, rgba(34, 211, 238, 0.36), transparent 28%),
+    radial-gradient(circle at 100% 92%, rgba(37, 99, 235, 0.78), transparent 38%),
+    linear-gradient(135deg, #020617 0%, #08204a 48%, #1248c4 100%);
   color: #fff;
+  position: relative;
+}
+
+.report-output .report-header-row::after {
+  content: "";
+  position: absolute;
+  inset: auto 38px 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(147, 197, 253, 0.52), transparent);
 }
 
 .report-header-row > div:first-child {
@@ -886,7 +896,7 @@
 
 .report-output .report-header-row h3 {
   color: #fff;
-  font-size: clamp(34px, 3.8vw, 56px);
+  font-size: clamp(34px, 4vw, 58px);
   text-shadow: 0 2px 12px rgba(2, 6, 23, 0.22);
 }
 
@@ -919,9 +929,13 @@
 
 .report-output .judgement-badge {
   align-content: center;
-  border: 1px solid rgba(255, 255, 255, 0.86);
-  background: #fff;
-  box-shadow: 0 24px 54px rgba(2, 6, 23, 0.26);
+  border: 1px solid rgba(255, 255, 255, 0.58);
+  background:
+    radial-gradient(circle at top right, rgba(16, 185, 129, 0.24), transparent 38%),
+    rgba(255, 255, 255, 0.94);
+  box-shadow:
+    0 24px 54px rgba(2, 6, 23, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.86);
 }
 
 .judgement-badge.positive {
@@ -937,8 +951,9 @@
 }
 
 .judgement-badge strong {
-  font-size: 34px;
+  font-size: 38px;
   line-height: 1.12;
+  letter-spacing: -0.04em;
 }
 
 .judgement-badge em {
@@ -974,40 +989,51 @@
 }
 
 .report-output .report-main-grid {
-  grid-template-columns: minmax(280px, 0.72fr) minmax(360px, 1fr);
+  grid-template-columns: minmax(280px, 0.82fr) minmax(360px, 1fr);
   align-items: start;
-  gap: 16px;
-  padding: 22px 34px 24px;
-  background: linear-gradient(180deg, #eff6ff, #fff);
+  gap: 18px;
+  padding: 28px 38px;
+  background:
+    linear-gradient(180deg, #07111f 0%, #0b1b3d 100%);
 }
 
 .report-output .report-summary-card,
 .report-output .impact-card {
   min-height: 0;
-  border-radius: 20px;
-  background: #fff;
-  box-shadow: 0 16px 36px rgba(37, 99, 235, 0.08);
+  border-radius: 22px;
+  box-shadow: 0 22px 54px rgba(2, 6, 23, 0.22);
 }
 
 .report-output .report-summary-card {
-  border-color: rgba(37, 99, 235, 0.24);
+  border-color: rgba(96, 165, 250, 0.42);
   position: relative;
-  padding: 18px 20px;
+  padding: 20px 22px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05)),
+    #0f1d36;
 }
 
 .report-output .report-summary-card::before {
   content: "";
   width: 4px;
   position: absolute;
-  inset: 18px auto 18px 0;
+  inset: 20px auto 20px 0;
   border-radius: 999px;
-  background: #1d4ed8;
+  background: #60a5fa;
 }
 
 .report-output .report-summary-card span,
 .report-output .impact-card span {
-  color: #1d4ed8;
+  color: #93c5fd;
   letter-spacing: 0.04em;
+}
+
+.report-output .impact-card.positive span {
+  color: #047857;
+}
+
+.report-output .impact-card.negative span {
+  color: #b91c1c;
 }
 
 .report-summary-card p,
@@ -1019,13 +1045,14 @@
 
 .report-output .report-summary-card p,
 .report-output .impact-card p {
-  color: #0f172a;
+  color: #111827;
   font-size: 15px;
-  line-height: 1.72;
+  line-height: 1.68;
 }
 
 .report-output .report-summary-card p {
-  line-height: 1.62;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.66;
 }
 
 .impact-card strong {
@@ -1035,10 +1062,10 @@
 }
 
 .impact-card.positive {
-  border-color: rgba(16, 185, 129, 0.36);
+  border-color: rgba(16, 185, 129, 0.58);
   background:
-    radial-gradient(circle at top right, rgba(16, 185, 129, 0.16), transparent 38%),
-    #ecfdf5;
+    radial-gradient(circle at top right, rgba(16, 185, 129, 0.26), transparent 42%),
+    linear-gradient(180deg, #ecfdf5, #ffffff);
 }
 
 .impact-card.positive strong {
@@ -1046,8 +1073,10 @@
 }
 
 .impact-card.negative {
-  border-color: rgba(185, 28, 28, 0.18);
-  background: #fff1f2;
+  border-color: rgba(239, 68, 68, 0.5);
+  background:
+    radial-gradient(circle at top right, rgba(239, 68, 68, 0.18), transparent 42%),
+    #fff1f2;
 }
 
 .impact-card.negative strong {
@@ -1056,12 +1085,12 @@
 
 .report-block {
   display: grid;
-  gap: 12px;
-  padding: 24px 34px 0;
+  gap: 14px;
+  padding: 28px 38px 0;
 }
 
 .report-output .report-block + .report-block {
-  border-top: 1px solid rgba(15, 23, 42, 0.06);
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
 }
 
 .block-title-row {
@@ -1073,8 +1102,9 @@
 
 .block-title-row h4 {
   margin: 0;
-  font-size: 22px;
-  letter-spacing: -0.02em;
+  color: #020617;
+  font-size: 24px;
+  letter-spacing: -0.035em;
 }
 
 .block-title-row span {
@@ -1086,24 +1116,26 @@
 .core-news-list {
   display: grid;
   grid-template-columns: repeat(5, minmax(210px, 1fr));
-  gap: 12px;
+  gap: 14px;
   overflow-x: auto;
   padding-bottom: 6px;
 }
 
 .core-news-list a {
-  min-height: 172px;
+  min-height: 174px;
   display: grid;
   grid-template-rows: auto 1fr auto;
   gap: 10px;
   min-width: 210px;
-  border: 1px solid rgba(37, 99, 235, 0.14);
-  border-radius: 18px;
+  border: 1px solid rgba(37, 99, 235, 0.2);
+  border-radius: 20px;
   background:
-    linear-gradient(180deg, #fff, #f1f6ff);
+    radial-gradient(circle at top right, rgba(37, 99, 235, 0.14), transparent 46%),
+    linear-gradient(180deg, #ffffff, #f5f9ff);
   padding: 16px;
   color: inherit;
   text-decoration: none;
+  box-shadow: 0 14px 34px rgba(37, 99, 235, 0.08);
   transition:
     border-color 160ms ease,
     transform 160ms ease,
@@ -1123,8 +1155,8 @@
   display: inline-flex;
   align-items: center;
   border-radius: 999px;
-  background: #dbeafe;
-  color: #1d4ed8;
+  background: #1d4ed8;
+  color: #fff;
   padding: 0 10px;
   font-size: 11px;
   font-weight: 900;
@@ -1133,15 +1165,15 @@
 .core-news-list strong {
   display: -webkit-box;
   overflow: hidden;
-  color: var(--color-text);
-  font-size: 15px;
+  color: #020617;
+  font-size: 16px;
   line-height: 1.45;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
 }
 
 .core-news-list small {
-  color: #1f2937;
+  color: #334155;
   font-weight: 800;
   line-height: 1.4;
 }
@@ -1149,45 +1181,46 @@
 .reason-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+  gap: 14px;
 }
 
 .reason-card {
   min-width: 0;
-  padding: 18px;
-  border: 1px solid rgba(37, 99, 235, 0.12);
-  border-radius: 18px;
+  padding: 20px;
+  border: 1px solid rgba(37, 99, 235, 0.16);
+  border-radius: 20px;
   background:
-    linear-gradient(180deg, #fff, #f8fbff);
+    linear-gradient(180deg, #ffffff, #f8fbff);
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.06);
 }
 
 .reason-card.positive {
-  border-color: rgba(16, 185, 129, 0.38);
+  border-color: rgba(16, 185, 129, 0.5);
   background:
-    radial-gradient(circle at top right, rgba(16, 185, 129, 0.13), transparent 42%),
-    #f0fdf4;
+    radial-gradient(circle at top right, rgba(16, 185, 129, 0.2), transparent 42%),
+    linear-gradient(180deg, #ecfdf5, #ffffff);
 }
 
 .reason-card.positive span {
-  background: rgba(15, 118, 110, 0.12);
-  color: #0f766e;
+  background: #10b981;
+  color: #fff;
 }
 
 .reason-card.negative {
-  border-color: rgba(239, 68, 68, 0.34);
+  border-color: rgba(239, 68, 68, 0.5);
   background:
-    radial-gradient(circle at top right, rgba(239, 68, 68, 0.12), transparent 42%),
-    #fff7f7;
+    radial-gradient(circle at top right, rgba(239, 68, 68, 0.18), transparent 42%),
+    linear-gradient(180deg, #fff1f2, #ffffff);
 }
 
 .reason-card.negative span {
-  background: rgba(185, 28, 28, 0.1);
-  color: #b91c1c;
+  background: #ef4444;
+  color: #fff;
 }
 
 .reason-card p {
   margin: 12px 0 0;
-  color: #0f172a;
+  color: #020617;
   line-height: 1.68;
 }
 
@@ -1202,7 +1235,7 @@
 .reason-card li {
   position: relative;
   padding-left: 13px;
-  color: #111827;
+  color: #0f172a;
   font-size: 13px;
   line-height: 1.5;
 }
@@ -1226,12 +1259,23 @@
 .check-list div,
 .check-list > p {
   margin: 0;
-  padding: 18px;
-  border: 1px solid rgba(37, 99, 235, 0.14);
-  border-radius: 18px;
+  position: relative;
+  padding: 18px 20px 18px 22px;
+  border: 1px solid rgba(37, 99, 235, 0.18);
+  border-radius: 20px;
   background:
+    radial-gradient(circle at 100% 0%, rgba(37, 99, 235, 0.1), transparent 34%),
     linear-gradient(180deg, #f8fbff, #fff);
-  box-shadow: 0 10px 26px rgba(37, 99, 235, 0.05);
+  box-shadow: 0 12px 30px rgba(37, 99, 235, 0.07);
+}
+
+.check-list div::before {
+  content: "";
+  position: absolute;
+  inset: 18px auto 18px 0;
+  width: 4px;
+  border-radius: 999px;
+  background: #2563eb;
 }
 
 .check-list time {
@@ -1244,7 +1288,8 @@
 
 .check-list strong {
   display: block;
-  font-size: 16px;
+  color: #020617;
+  font-size: 17px;
 }
 
 .check-list p {
@@ -1254,11 +1299,11 @@
 }
 
 .report-disclaimer {
-  margin: 22px 34px 30px;
-  padding: 13px 15px;
-  border-radius: 12px;
-  background: #eff6ff;
-  color: #1f2937;
+  margin: 24px 38px 34px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: #f1f5f9;
+  color: #334155;
   font-size: 12px;
   font-weight: 800;
   line-height: 1.55;
