@@ -764,19 +764,28 @@ function ServiceGuidePanel({
 
   return (
     <section className="limit-panel" ref={refTarget} role="region" aria-labelledby="guide-title">
-      <div>
+      <div className="limit-copy">
+        <span className="limit-kicker">서비스 안내 신청</span>
         <h2 id="guide-title">
           {isAfterReport ? '더 많은 리포트를 생성하고 싶으신가요?' : '다른 종목도 확인하고 싶으신가요?'}
         </h2>
         <p>
           {isAfterReport
-            ? '오늘 받은 브리프가 도움이 되었다면 서비스 사용 안내를 신청해주세요. 더 많은 종목과 매일 업데이트 리포트 소식을 먼저 받아볼 수 있고, 지금 신청 시 출시 후 3개월 무료 혜택을 드릴 예정입니다.'
-            : '현재 무료 리포트는 IP당 1회 제공됩니다. 서비스 사용 안내를 신청하면 더 많은 종목과 매일 업데이트 리포트 소식을 먼저 받아볼 수 있고, 지금 신청 시 출시 후 3개월 무료 혜택을 드릴 예정입니다.'}
+            ? '오늘 받은 브리프가 쓸만했다면 10초 피드백을 남겨주세요. 신청자에게는 출시 후 3개월 무료 혜택과 서비스 사용 안내를 먼저 보내드릴 예정입니다.'
+            : '현재 무료 리포트는 IP당 1회 제공됩니다. 더 많은 종목을 확인하고 싶다면 10초 피드백과 이메일을 남겨주세요.'}
         </p>
       </div>
-      <button className="primary-button" type="button" onClick={onGuideClick}>
-        서비스 사용 안내 받기
-      </button>
+      <div className="limit-action-card">
+        <div className="limit-benefits" aria-label="서비스 안내 신청 혜택">
+          <span>출시 후 3개월 무료</span>
+          <span>추가 종목 리포트 안내</span>
+          <span>매일 업데이트 소식</span>
+        </div>
+        <button className="primary-button" type="button" onClick={onGuideClick}>
+          10초 피드백 남기고 안내 받기
+        </button>
+        <small>버튼을 누르면 피드백 입력 창이 열립니다.</small>
+      </div>
     </section>
   )
 }
