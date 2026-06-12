@@ -608,7 +608,11 @@ function ReportGenerator({
         onCreate={onCreate}
         buttonLabel="무료 리포트 생성하기"
       />
-      {message && <p className="generator-status">{message}</p>}
+      {message && (
+        <p className={`generator-status ${message.includes('지원하지 않는 종목') ? 'error' : ''}`}>
+          {message}
+        </p>
+      )}
       <ServiceGuidePanel
         visible={guidePanelVisible}
         mode="afterReport"
@@ -821,13 +825,9 @@ function FeedbackModal({
 }) {
   const [feedback, setFeedback] = useState<FeedbackState>(initialFeedback)
   const [submitState, setSubmitState] = useState<LoadState>('idle')
-  const [emailError, setEmailError] = useState('')
 
   const updateSingle = (key: keyof FeedbackState, value: string) => {
     setFeedback((current) => ({ ...current, [key]: value }))
-    if (key === 'email' && value.trim()) {
-      setEmailError('')
-    }
   }
 
   const toggleMulti = (key: 'mostUseful', value: string) => {
@@ -843,12 +843,6 @@ function FeedbackModal({
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-
-    if (!feedback.email.trim()) {
-      setEmailError('서비스 이용 안내를 받을 이메일을 입력해주세요.')
-      setSubmitState('idle')
-      return
-    }
 
     setSubmitState('loading')
 
@@ -946,17 +940,16 @@ function FeedbackModal({
               />
             </label>
             <label className="feedback-email-field">
-              서비스 이용 안내를 받을 이메일
+              <span className="feedback-label-row">
+                서비스 이용 안내를 받을 이메일
+                <em>선택</em>
+              </span>
               <input
                 type="email"
-                required
                 value={feedback.email}
                 placeholder="이메일 주소를 입력해주세요"
-                aria-invalid={Boolean(emailError)}
-                aria-describedby={emailError ? 'feedback-email-error' : undefined}
                 onChange={(event) => updateSingle('email', event.target.value)}
               />
-              {emailError && <span id="feedback-email-error" className="feedback-error">{emailError}</span>}
             </label>
           </div>
 
