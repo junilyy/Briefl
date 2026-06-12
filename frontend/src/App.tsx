@@ -787,13 +787,12 @@ function ServiceGuidePanel({
             ? '피드백과 이메일을 남겨주시면 더 많은 종목을 제한 없이 확인할 수 있는 서비스 이용 절차를 안내드릴게요.'
             : '10초 피드백과 이메일을 남기면 횟수와 종목 제한 없이 이용 가능한 서비스 안내를 받아볼 수 있습니다.'}
         </p>
-        <strong className="limit-free-benefit">지금 신청하면 3개월 무료</strong>
       </div>
       <div className="limit-action-card">
+        <strong className="limit-free-benefit">지금 신청하면 3개월 무료</strong>
         <button className="primary-button" type="button" onClick={onGuideClick}>
-          더 많은 리포트 신청하기
+          신청하러가기
         </button>
-        <small>버튼을 누르면 피드백과 이메일 입력 창이 열립니다.</small>
       </div>
     </section>
   )
