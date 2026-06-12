@@ -990,7 +990,7 @@
 
 .report-output .report-main-grid {
   grid-template-columns: minmax(240px, 0.58fr) minmax(420px, 1fr);
-  align-items: start;
+  align-items: stretch;
   gap: 18px;
   padding: 28px 38px;
   background: #fff;
