@@ -157,7 +157,6 @@ function App() {
   const [guideModalOpen, setGuideModalOpen] = useState(false)
   const [guideModalMode, setGuideModalMode] = useState<FeedbackModalMode>('reportFeedback')
   const reportRef = useRef<HTMLElement | null>(null)
-  const guidePanelRef = useRef<HTMLElement | null>(null)
 
   useEffect(() => {
     getStocks()
@@ -253,11 +252,7 @@ function App() {
           message={message}
           onStockInput={setStockInput}
           onCreate={handleCreateReport}
-        />
-        <ServiceGuidePanel
-          refTarget={guidePanelRef}
-          visible={Boolean(report) && !limitVisible}
-          mode={limitVisible ? 'limit' : 'afterReport'}
+          guidePanelVisible={Boolean(report) && !limitVisible}
           onGuideClick={() => {
             setGuideModalMode('reportFeedback')
             setGuideModalOpen(true)
@@ -572,6 +567,8 @@ function ReportGenerator({
   message,
   onStockInput,
   onCreate,
+  guidePanelVisible,
+  onGuideClick,
 }: {
   refTarget: RefObject<HTMLElement | null>
   report: Report | null
@@ -583,6 +580,8 @@ function ReportGenerator({
   message: string
   onStockInput: (value: string) => void
   onCreate: () => void
+  guidePanelVisible: boolean
+  onGuideClick: () => void
 }) {
   return (
     <section className="generator-section" id="report-generator" ref={refTarget}>
@@ -604,6 +603,11 @@ function ReportGenerator({
         buttonLabel="무료 리포트 생성하기"
       />
       {message && <p className="generator-status">{message}</p>}
+      <ServiceGuidePanel
+        visible={guidePanelVisible}
+        mode="afterReport"
+        onGuideClick={onGuideClick}
+      />
       <ReportResult report={report} reportState={reportState} selectedStockLabel={selectedStockLabel} />
     </section>
   )
@@ -759,12 +763,10 @@ function AnalysisReasonCard({ analysis }: { analysis: ReportSentimentAnalysis })
 }
 
 function ServiceGuidePanel({
-  refTarget,
   visible,
   mode,
   onGuideClick,
 }: {
-  refTarget: RefObject<HTMLElement | null>
   visible: boolean
   mode: 'limit' | 'afterReport'
   onGuideClick: () => void
@@ -776,7 +778,7 @@ function ServiceGuidePanel({
   const isAfterReport = mode === 'afterReport'
 
   return (
-    <section className="limit-panel" ref={refTarget} role="region" aria-labelledby="guide-title">
+    <section className="limit-panel" role="region" aria-labelledby="guide-title">
       <div className="limit-copy">
         <span className="limit-kicker">서비스 안내 신청</span>
         <h2 id="guide-title">
@@ -954,7 +956,7 @@ function FeedbackModal({
 
           <div className="feedback-submit-row">
             <button className="primary-button" type="submit" disabled={submitState === 'loading'}>
-              {submitState === 'loading' ? '제출 중...' : '피드백 제출하기'}
+              {submitState === 'loading' ? '제출 중...' : '피드백 제출 및 서비스 신청하기'}
             </button>
             {submitState === 'success' && (
               <p>의견이 저장되었습니다. 추가 리포트와 서비스 안내에 참고하겠습니다.</p>
