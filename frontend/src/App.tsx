@@ -146,8 +146,9 @@ function App() {
   const [reportState, setReportState] = useState<LoadState>('idle')
   const [message, setMessage] = useState('')
   const [limitVisible, setLimitVisible] = useState(false)
+  const [guideModalOpen, setGuideModalOpen] = useState(false)
   const reportRef = useRef<HTMLElement | null>(null)
-  const feedbackRef = useRef<HTMLElement | null>(null)
+  const guidePanelRef = useRef<HTMLElement | null>(null)
 
   useEffect(() => {
     getStocks()
@@ -170,10 +171,10 @@ function App() {
     }, 100)
   }
 
-  const scrollToFeedback = () => {
+  const scrollToGuidePanel = () => {
     window.requestAnimationFrame(() => {
       window.setTimeout(() => {
-        feedbackRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        guidePanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
       }, 180)
     })
   }
@@ -192,13 +193,13 @@ function App() {
     if (!selectedStock) {
       setLimitVisible(true)
       setMessage('아직 지원하지 않는 종목입니다. 받고 싶은 종목을 피드백으로 남겨주세요.')
-      scrollToFeedback()
+      scrollToGuidePanel()
       return
     }
 
     if (generatedStockName && generatedStockName !== selectedStock.stockName) {
       setLimitVisible(true)
-      scrollToFeedback()
+      scrollToGuidePanel()
       return
     }
 
@@ -246,12 +247,17 @@ function App() {
         onStockInput={setStockInput}
         onCreate={handleCreateReport}
       />
-      <LimitModal visible={limitVisible} onBetaClick={scrollToFeedback} />
-      <FeedbackSection
-        refTarget={feedbackRef}
+      <ServiceGuidePanel
+        refTarget={guidePanelRef}
+        visible={Boolean(report) || limitVisible}
+        mode={limitVisible ? 'limit' : 'afterReport'}
+        onGuideClick={() => setGuideModalOpen(true)}
+      />
+      <FeedbackModal
+        open={guideModalOpen}
+        onClose={() => setGuideModalOpen(false)}
         report={report}
         selectedStockLabel={selectedStockLabel}
-        forceVisible={limitVisible}
       />
     </main>
   )
@@ -713,43 +719,55 @@ function AnalysisReasonCard({ analysis }: { analysis: ReportSentimentAnalysis })
   )
 }
 
-function LimitModal({ visible, onBetaClick }: { visible: boolean; onBetaClick: () => void }) {
+function ServiceGuidePanel({
+  refTarget,
+  visible,
+  mode,
+  onGuideClick,
+}: {
+  refTarget: RefObject<HTMLElement | null>
+  visible: boolean
+  mode: 'limit' | 'afterReport'
+  onGuideClick: () => void
+}) {
   if (!visible) {
     return null
   }
 
+  const isAfterReport = mode === 'afterReport'
+
   return (
-    <section className="limit-panel" role="alert" aria-labelledby="limit-title">
+    <section className="limit-panel" ref={refTarget} role="region" aria-labelledby="guide-title">
       <div>
-        <h2 id="limit-title">다른 종목도 확인하고 싶으신가요?</h2>
+        <h2 id="guide-title">
+          {isAfterReport ? '더 많은 리포트를 생성하고 싶으신가요?' : '다른 종목도 확인하고 싶으신가요?'}
+        </h2>
         <p>
-          현재 무료 리포트는 IP당 1회 제공됩니다. 서비스 사용 안내를 신청하면 더 많은 종목과
-          매일 업데이트 리포트 소식을 먼저 받아볼 수 있고, 지금 신청 시 출시 후 3개월 무료 혜택을
-          드릴 예정입니다.
+          {isAfterReport
+            ? '오늘 받은 브리프가 도움이 되었다면 서비스 사용 안내를 신청해주세요. 더 많은 종목과 매일 업데이트 리포트 소식을 먼저 받아볼 수 있고, 지금 신청 시 출시 후 3개월 무료 혜택을 드릴 예정입니다.'
+            : '현재 무료 리포트는 IP당 1회 제공됩니다. 서비스 사용 안내를 신청하면 더 많은 종목과 매일 업데이트 리포트 소식을 먼저 받아볼 수 있고, 지금 신청 시 출시 후 3개월 무료 혜택을 드릴 예정입니다.'}
         </p>
       </div>
-      <button className="primary-button" type="button" onClick={onBetaClick}>
+      <button className="primary-button" type="button" onClick={onGuideClick}>
         서비스 사용 안내 받기
       </button>
     </section>
   )
 }
 
-function FeedbackSection({
-  refTarget,
+function FeedbackModal({
+  open,
+  onClose,
   report,
   selectedStockLabel,
-  forceVisible,
 }: {
-  refTarget: RefObject<HTMLElement | null>
+  open: boolean
+  onClose: () => void
   report: Report | null
   selectedStockLabel: string
-  forceVisible: boolean
 }) {
   const [feedback, setFeedback] = useState<FeedbackState>(initialFeedback)
   const [submitState, setSubmitState] = useState<LoadState>('idle')
-
-  const visible = Boolean(report) || forceVisible
 
   const updateSingle = (key: keyof FeedbackState, value: string) => {
     setFeedback((current) => ({ ...current, [key]: value }))
@@ -792,68 +810,85 @@ function FeedbackSection({
     }
   }
 
+  if (!open) {
+    return null
+  }
+
   return (
-    <section className={`feedback-section ${visible ? '' : 'is-muted'}`} ref={refTarget} aria-labelledby="feedback-title">
-      <div className="section-heading">
-        <h2 id="feedback-title">방금 받은 AI 브리프, 실제로 도움이 되었나요?</h2>
-        <p>10초만 선택해주세요. 서비스 사용 안내를 신청하면 출시 후 3개월 무료 혜택을 드릴 예정입니다.</p>
-      </div>
-
-      <form className="feedback-form" onSubmit={handleSubmit}>
-        <FeedbackChoice
-          title="Q1. 리포트가 도움이 되었나요?"
-          options={['매우 도움됨', '도움됨', '보통', '도움 안 됨']}
-          selected={feedback.helpful}
-          onSelect={(value) => updateSingle('helpful', value)}
-        />
-        <FeedbackChoice
-          title="Q2. 가장 유용했던 부분은 무엇인가요?"
-          options={usefulOptions}
-          selectedValues={feedback.mostUseful}
-          onToggle={(value) => toggleMulti('mostUseful', value)}
-        />
-        <FeedbackChoice
-          title="Q3. 부족했던 부분은 무엇인가요?"
-          options={missingOptions}
-          selectedValues={feedback.missing}
-          onToggle={(value) => toggleMulti('missing', value)}
-        />
-        <FeedbackChoice
-          title="Q4. 다시 사용해보고 싶나요?"
-          options={['매일 받고 싶음', '이슈 있을 때만', '가끔 확인', '잘 모르겠음']}
-          selected={feedback.reuseIntent}
-          onSelect={(value) => updateSingle('reuseIntent', value)}
-        />
-
-        <div className="feedback-fields">
-          <label>
-            서비스 사용 안내를 받을 이메일을 남겨주세요.
-            <input
-              type="email"
-              value={feedback.email}
-              placeholder="email@example.com"
-              onChange={(event) => updateSingle('email', event.target.value)}
-            />
-          </label>
-          <label>
-            자유 의견
-            <textarea
-              value={feedback.comment}
-              placeholder="어떤 정보가 있으면 돈을 내고 쓸 만한지, 어떤 분석이 신뢰되는지 남겨주세요."
-              onChange={(event) => updateSingle('comment', event.target.value)}
-            />
-          </label>
-        </div>
-
-        <div className="feedback-submit-row">
-          <button className="primary-button" type="submit" disabled={submitState === 'loading'}>
-            {submitState === 'loading' ? '제출 중...' : '피드백 제출하고 서비스 안내 받기'}
+    <div className="feedback-backdrop" role="presentation" onMouseDown={onClose}>
+      <section
+        className="feedback-section"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="feedback-title"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <div className="feedback-modal-header">
+          <div>
+            <h2 id="feedback-title">방금 받은 AI 브리프, 실제로 도움이 되었나요?</h2>
+            <p>10초만 선택해주세요. 서비스 사용 안내를 신청하면 출시 후 3개월 무료 혜택을 드릴 예정입니다.</p>
+          </div>
+          <button type="button" className="modal-close-button" onClick={onClose} aria-label="닫기">
+            닫기
           </button>
-          {submitState === 'success' && <p>피드백이 저장되었습니다.</p>}
-          {submitState === 'error' && <p>피드백 저장 중 문제가 발생했습니다.</p>}
         </div>
-      </form>
-    </section>
+
+        <form className="feedback-form" onSubmit={handleSubmit}>
+          <FeedbackChoice
+            title="Q1. 리포트가 도움이 되었나요?"
+            options={['매우 도움됨', '도움됨', '보통', '도움 안 됨']}
+            selected={feedback.helpful}
+            onSelect={(value) => updateSingle('helpful', value)}
+          />
+          <FeedbackChoice
+            title="Q2. 가장 유용했던 부분은 무엇인가요?"
+            options={usefulOptions}
+            selectedValues={feedback.mostUseful}
+            onToggle={(value) => toggleMulti('mostUseful', value)}
+          />
+          <FeedbackChoice
+            title="Q3. 부족했던 부분은 무엇인가요?"
+            options={missingOptions}
+            selectedValues={feedback.missing}
+            onToggle={(value) => toggleMulti('missing', value)}
+          />
+          <FeedbackChoice
+            title="Q4. 다시 사용해보고 싶나요?"
+            options={['매일 받고 싶음', '이슈 있을 때만', '가끔 확인', '잘 모르겠음']}
+            selected={feedback.reuseIntent}
+            onSelect={(value) => updateSingle('reuseIntent', value)}
+          />
+
+          <div className="feedback-fields">
+            <label>
+              서비스 사용 안내를 받을 이메일을 남겨주세요.
+              <input
+                type="email"
+                value={feedback.email}
+                placeholder="email@example.com"
+                onChange={(event) => updateSingle('email', event.target.value)}
+              />
+            </label>
+            <label>
+              자유 의견
+              <textarea
+                value={feedback.comment}
+                placeholder="어떤 정보가 있으면 돈을 내고 쓸 만한지, 어떤 분석이 신뢰되는지 남겨주세요."
+                onChange={(event) => updateSingle('comment', event.target.value)}
+              />
+            </label>
+          </div>
+
+          <div className="feedback-submit-row">
+            <button className="primary-button" type="submit" disabled={submitState === 'loading'}>
+              {submitState === 'loading' ? '제출 중...' : '피드백 제출하고 서비스 안내 받기'}
+            </button>
+            {submitState === 'success' && <p>피드백이 저장되었습니다.</p>}
+            {submitState === 'error' && <p>피드백 저장 중 문제가 발생했습니다.</p>}
+          </div>
+        </form>
+      </section>
+    </div>
   )
 }
 
