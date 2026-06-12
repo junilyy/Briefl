@@ -710,7 +710,7 @@ function ReportResult({
 
       <section className="report-block">
         <div className="block-title-row">
-          <h4>투자자가 체크할 포인트</h4>
+          <h4>체크할 포인트</h4>
           <span>{report.checkEvents.length || 'AI 정리'}</span>
         </div>
         <div className="check-list">
