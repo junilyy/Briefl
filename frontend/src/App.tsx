@@ -209,7 +209,7 @@ function App() {
 
     if (!selectedStock) {
       setLimitVisible(true)
-      setMessage('아직 지원하지 않는 종목입니다. 받고 싶은 종목을 피드백으로 남겨주세요.')
+      setMessage('체험 가능한 종목이 아닙니다. 종목, 횟수 제한 없이 이용하고 싶다면 서비스를 신청해주세요.')
       openMoreReportsModal()
       return
     }
@@ -609,7 +609,7 @@ function ReportGenerator({
         buttonLabel="무료 리포트 생성하기"
       />
       {message && (
-        <p className={`generator-status ${message.includes('지원하지 않는 종목') ? 'error' : ''}`}>
+        <p className={`generator-status ${message.includes('체험 가능한 종목') ? 'error' : ''}`}>
           {message}
         </p>
       )}
