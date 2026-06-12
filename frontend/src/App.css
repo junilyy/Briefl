@@ -505,14 +505,22 @@
   font-weight: 950;
 }
 
+.preview-judgement-card > span {
+  color: #111827;
+}
+
 .preview-risk-meter {
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 7px;
-  color: #0f172a;
+  color: #111827;
   font-size: 10px;
   font-weight: 900;
+}
+
+.preview-judgement-card .preview-risk-meter > span {
+  color: #111827;
 }
 
 .preview-risk-meter div {
