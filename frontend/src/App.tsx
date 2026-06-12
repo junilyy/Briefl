@@ -887,11 +887,19 @@ function FeedbackModal({
                 ? '더 많은 리포트를 생성하고 싶으신가요?'
                 : '방금 본 AI 브리프가 실제로 도움이 되었나요?'}
             </h2>
-            <p>
-              {isMoreReportsMode
-                ? '현재 무료 리포트는 1회 제공됩니다. 더 많은 종목과 매일 업데이트 리포트를 사용해보고 싶다면 10초 피드백과 이메일을 남겨주세요. 신청자에게 출시 후 3개월 무료 혜택을 먼저 안내드릴 예정입니다.'
-                : '짧게 선택해주시면 다음 버전 개선에 반영하겠습니다.'}
-            </p>
+            {isMoreReportsMode ? (
+              <div className="feedback-modal-copy">
+                <p>
+                  현재 리포트는 1회 제공됩니다. 더 많은 종목과 매일 업데이트 리포트를 사용해보고 싶다면
+                  피드백과 이메일을 남겨주세요.
+                </p>
+                <p>
+                  신청자에게는 서비스 이용 절차와 <strong>3개월 무료 혜택</strong>을 제공드립니다.
+                </p>
+              </div>
+            ) : (
+              <p>짧게 선택해주시면 다음 버전 개선에 반영하겠습니다.</p>
+            )}
           </div>
           <button type="button" className="modal-close-button" onClick={onClose} aria-label="닫기">
             닫기
@@ -912,7 +920,7 @@ function FeedbackModal({
             onToggle={(value) => toggleMulti('mostUseful', value)}
           />
           <FeedbackChoice
-            title="이 정도 분석이 더 정교해진다면 월 얼마까지 이용할 의향이 있나요?"
+            title="월 얼마까지 이용할 의향이 있나요?"
             options={willingnessOptions}
             selected={feedback.willingnessToPay}
             onSelect={(value) => updateSingle('willingnessToPay', value)}
@@ -926,10 +934,13 @@ function FeedbackModal({
 
           <div className="feedback-fields">
             <label>
-              추가로 남기고 싶은 의견이 있다면 적어주세요. (선택)
+              <span className="feedback-label-row">
+                추가로 남기고 싶은 의견이 있다면 적어주세요.
+                <em>선택</em>
+              </span>
               <textarea
                 value={feedback.comment}
-                placeholder="예: 어떤 정보가 더 있으면 돈을 낼 만할지, 어떤 분석이 더 신뢰될지 등"
+                placeholder="예: 어떤 부분이 도움이 되었는지, 어떤 부분이 보완되면 더 좋을지 남겨주세요."
                 onChange={(event) => updateSingle('comment', event.target.value)}
               />
             </label>

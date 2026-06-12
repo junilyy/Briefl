@@ -1576,9 +1576,31 @@
 
 .feedback-modal-header p {
   margin: 10px 0 0;
-  color: #1f2937;
+  color: #111827;
   font-size: 15px;
+  font-weight: 700;
   line-height: 1.65;
+}
+
+.feedback-modal-copy {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.feedback-modal-copy p {
+  margin: 0;
+  color: #111827;
+  font-size: 15px;
+  font-weight: 750;
+  line-height: 1.65;
+}
+
+.feedback-modal-copy strong {
+  color: #dc2626;
+  font-size: 20px;
+  font-weight: 950;
+  letter-spacing: -0.03em;
 }
 
 .modal-close-button {
@@ -1649,6 +1671,26 @@
   color: var(--color-primary);
   font-size: 14px;
   font-weight: 900;
+}
+
+.feedback-label-row {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.feedback-label-row em {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 9px;
+  border-radius: 999px;
+  background: #eaf2ff;
+  color: #1d4ed8;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 950;
 }
 
 .feedback-fields input,
