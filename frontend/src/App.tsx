@@ -226,7 +226,6 @@ function App() {
 
   return (
     <main className="page-shell">
-      <TopNav />
       <HeroSection
         stockInput={stockInput}
         reportState={reportState}
@@ -275,23 +274,6 @@ function resolveStock(value: string, stocks: Stock[]) {
   })
 }
 
-function TopNav() {
-  return (
-    <nav className="top-nav" aria-label="브리플">
-      <a className="brand" href="#page-title" aria-label="BRIEFL 홈">
-        <span className="brand-mark" aria-hidden="true">
-          <span />
-        </span>
-        <span className="brand-copy">
-          <span className="brand-name">BRIEFL</span>
-          <span className="brand-subtitle">브리플</span>
-        </span>
-      </a>
-      <span className="nav-status">AI News Risk Radar</span>
-    </nav>
-  )
-}
-
 function HeroSection({
   stockInput,
   reportState,
@@ -305,24 +287,32 @@ function HeroSection({
 }) {
   return (
     <section className="hero-section" aria-labelledby="page-title">
-      <div className="hero-copy">
-        <h1 id="page-title">
-          <span>내 주식 떨어지고 나서야</span>
-          <span>악재 뉴스를 찾고 있나요?</span>
-        </h1>
-        <p>
-          관심 종목을 입력하면 오늘 나온 뉴스를 AI가 모아 호재·악재·중립 가능성과 가격 영향
-          포인트를 1분 만에 정리해드립니다.
-        </p>
-        <HeroExperienceForm
-          stockInput={stockInput}
-          reportState={reportState}
-          onStockInput={onStockInput}
-          onExperience={onExperience}
-        />
+      <div className="hero-intro-sequence" aria-hidden="true">
+        <span className="intro-step intro-step-one">더 이상 손해보기 싫다면</span>
+        <span className="intro-step intro-step-two">한눈에 원하는 주식 정보를 찾고 싶다면</span>
+        <span className="intro-step intro-step-three">BRIEFL</span>
       </div>
 
-      <HeroPreviewCard />
+      <div className="hero-final-layout">
+        <div className="hero-copy">
+          <h1 id="page-title">
+            <span>내 주식 떨어지고 나서야</span>
+            <span>악재 뉴스를 찾고 있나요?</span>
+          </h1>
+          <p>
+            관심 종목을 입력하면 오늘 나온 뉴스를 AI가 모아 호재·악재·중립 가능성과 가격 영향
+            포인트를 1분 만에 정리해드립니다.
+          </p>
+          <HeroExperienceForm
+            stockInput={stockInput}
+            reportState={reportState}
+            onStockInput={onStockInput}
+            onExperience={onExperience}
+          />
+        </div>
+
+        <HeroPreviewCard />
+      </div>
     </section>
   )
 }
