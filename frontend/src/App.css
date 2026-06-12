@@ -121,44 +121,48 @@
   position: absolute;
   z-index: 1;
   display: grid;
-  gap: 6px;
-  min-width: 210px;
-  padding: 18px 20px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 22px;
-  background: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 24px 70px rgba(2, 6, 23, 0.3);
-  backdrop-filter: blur(18px);
+  gap: 10px;
+  min-width: clamp(280px, 21vw, 360px);
+  padding: 24px 26px;
+  border: 1px solid rgba(191, 219, 254, 0.24);
+  border-radius: 28px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.08));
+  box-shadow:
+    0 30px 90px rgba(2, 6, 23, 0.36),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(22px);
   opacity: 0;
 }
 
 .launch-signal-card span {
-  color: #93c5fd;
-  font-size: 11px;
+  color: #bfdbfe;
+  font-size: 12px;
   font-weight: 900;
   letter-spacing: 0.08em;
 }
 
 .launch-signal-card strong {
   color: #fff;
-  font-size: 26px;
+  font-size: clamp(30px, 2.5vw, 42px);
   line-height: 1.1;
 }
 
 .launch-signal-card small {
   color: rgba(255, 255, 255, 0.74);
+  font-size: 15px;
   font-weight: 800;
 }
 
 .launch-card-left {
-  left: min(8vw, 120px);
-  top: 24vh;
+  left: clamp(32px, 7vw, 120px);
+  top: 18vh;
   animation: launchCardFloat 3.8s ease 480ms both;
 }
 
 .launch-card-right {
-  right: min(8vw, 120px);
-  bottom: 22vh;
+  right: clamp(32px, 7vw, 120px);
+  bottom: 18vh;
   animation: launchCardFloat 3.6s ease 1.4s both reverse;
 }
 
@@ -1440,6 +1444,10 @@
 }
 
 @media (max-width: 1120px) {
+  .launch-signal-card {
+    display: none;
+  }
+
   .hero-final-layout,
   .target-grid,
   .feature-grid,
