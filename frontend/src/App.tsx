@@ -499,7 +499,10 @@ function ProblemSection() {
   return (
     <section className="problem-section" aria-labelledby="problem-title">
       <div className="section-heading">
-        <h2 id="problem-title">문제는 뉴스가 많은 게 아니라, 중요한 신호를 늦게 아는 것입니다.</h2>
+        <h2 id="problem-title">
+          <span>문제는 뉴스가 많은 게 아니라,</span>
+          <span>중요한 신호를 늦게 아는 것입니다.</span>
+        </h2>
       </div>
       <div className="target-grid">
         <article>
@@ -584,10 +587,10 @@ function ReportGenerator({
   return (
     <section className="generator-section" id="report-generator" ref={refTarget}>
       <div className="generator-copy">
-        <h2>지금은 5개 종목으로 먼저 체험해볼 수 있습니다.</h2>
+        <h2>대표 종목으로 BRIEFL 리포트를 테스트해보세요.</h2>
         <p>
-          삼성전자, NAVER, 카카오, Tesla, NVIDIA 중 하나를 선택하거나 직접 입력해 오늘의 AI 뉴스
-          브리프를 생성해보세요.
+          삼성전자, NAVER, 카카오, Tesla, NVIDIA 중 하나를 선택해 관심 종목 뉴스 분석 리포트가
+          악재 신호와 가격 영향 변수를 어떻게 정리하는지 확인해보세요.
         </p>
       </div>
       <StockSearchForm

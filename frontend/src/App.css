@@ -676,6 +676,10 @@
   letter-spacing: -0.035em;
 }
 
+#problem-title span {
+  display: block;
+}
+
 .section-heading p,
 .generator-copy p,
 .limit-panel p {
