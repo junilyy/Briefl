@@ -1484,9 +1484,9 @@
 
 .limit-action-card {
   display: grid;
-  gap: 14px;
+  gap: 16px;
   align-content: center;
-  padding: 18px;
+  padding: 20px;
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 22px;
   background: rgba(255, 255, 255, 0.1);
@@ -1502,7 +1502,7 @@
 }
 
 .limit-benefits span {
-  min-height: 38px;
+  min-height: 40px;
   display: flex;
   align-items: center;
   border-radius: 14px;
@@ -1511,6 +1511,18 @@
   padding: 0 13px;
   font-size: 13px;
   font-weight: 950;
+}
+
+.limit-benefits span:first-child {
+  min-height: 70px;
+  justify-content: center;
+  border: 1px solid rgba(16, 185, 129, 0.28);
+  background:
+    radial-gradient(circle at 80% 10%, rgba(16, 185, 129, 0.22), transparent 34%),
+    #ecfdf5;
+  color: #047857;
+  font-size: 22px;
+  letter-spacing: -0.04em;
 }
 
 .limit-action-card .primary-button {

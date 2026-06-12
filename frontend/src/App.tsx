@@ -16,6 +16,8 @@ type FeedbackState = {
   comment: string
 }
 
+type FeedbackModalMode = 'reportFeedback' | 'moreReports'
+
 const initialFeedback: FeedbackState = {
   helpful: '',
   mostUseful: [],
@@ -147,6 +149,7 @@ function App() {
   const [message, setMessage] = useState('')
   const [limitVisible, setLimitVisible] = useState(false)
   const [guideModalOpen, setGuideModalOpen] = useState(false)
+  const [guideModalMode, setGuideModalMode] = useState<FeedbackModalMode>('reportFeedback')
   const reportRef = useRef<HTMLElement | null>(null)
   const guidePanelRef = useRef<HTMLElement | null>(null)
 
@@ -171,17 +174,14 @@ function App() {
     }, 100)
   }
 
-  const scrollToGuidePanel = () => {
-    window.requestAnimationFrame(() => {
-      window.setTimeout(() => {
-        guidePanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-      }, 180)
-    })
-  }
-
   const handleHeroExperience = () => {
     setMessage('아래 리포트 생성 영역에서 관심 종목을 확인해보세요.')
     scrollToReport()
+  }
+
+  const openMoreReportsModal = () => {
+    setGuideModalMode('moreReports')
+    setGuideModalOpen(true)
   }
 
   const handleCreateReport = async () => {
@@ -193,13 +193,13 @@ function App() {
     if (!selectedStock) {
       setLimitVisible(true)
       setMessage('아직 지원하지 않는 종목입니다. 받고 싶은 종목을 피드백으로 남겨주세요.')
-      scrollToGuidePanel()
+      openMoreReportsModal()
       return
     }
 
     if (generatedStockName && generatedStockName !== selectedStock.stockName) {
       setLimitVisible(true)
-      scrollToGuidePanel()
+      openMoreReportsModal()
       return
     }
 
@@ -250,12 +250,16 @@ function App() {
         />
         <ServiceGuidePanel
           refTarget={guidePanelRef}
-          visible={Boolean(report) || limitVisible}
+          visible={Boolean(report) && !limitVisible}
           mode={limitVisible ? 'limit' : 'afterReport'}
-          onGuideClick={() => setGuideModalOpen(true)}
+          onGuideClick={() => {
+            setGuideModalMode('reportFeedback')
+            setGuideModalOpen(true)
+          }}
         />
         <FeedbackModal
           open={guideModalOpen}
+          mode={guideModalMode}
           onClose={() => setGuideModalOpen(false)}
           report={report}
           selectedStockLabel={selectedStockLabel}
@@ -767,11 +771,11 @@ function ServiceGuidePanel({
       <div className="limit-copy">
         <span className="limit-kicker">서비스 안내 신청</span>
         <h2 id="guide-title">
-          {isAfterReport ? '더 많은 리포트를 생성하고 싶으신가요?' : '다른 종목도 확인하고 싶으신가요?'}
+          {isAfterReport ? '더 많은 리포트를 생성하고 싶다면' : '다른 종목도 확인하고 싶으신가요?'}
         </h2>
         <p>
           {isAfterReport
-            ? '오늘 받은 브리프가 쓸만했다면 10초 피드백을 남겨주세요. 신청자에게는 출시 후 3개월 무료 혜택과 서비스 사용 안내를 먼저 보내드릴 예정입니다.'
+            ? '오늘 받은 브리프가 쓸만했다면 10초 피드백과 이메일을 남겨주세요. 신청자에게는 추가 종목 리포트, 매일 업데이트 소식, 출시 후 3개월 무료 혜택을 먼저 안내드릴 예정입니다.'
             : '현재 무료 리포트는 IP당 1회 제공됩니다. 더 많은 종목을 확인하고 싶다면 10초 피드백과 이메일을 남겨주세요.'}
         </p>
       </div>
@@ -782,7 +786,7 @@ function ServiceGuidePanel({
           <span>매일 업데이트 소식</span>
         </div>
         <button className="primary-button" type="button" onClick={onGuideClick}>
-          10초 피드백 남기고 안내 받기
+          더 많은 리포트 신청하기
         </button>
         <small>버튼을 누르면 피드백 입력 창이 열립니다.</small>
       </div>
@@ -792,11 +796,13 @@ function ServiceGuidePanel({
 
 function FeedbackModal({
   open,
+  mode,
   onClose,
   report,
   selectedStockLabel,
 }: {
   open: boolean
+  mode: FeedbackModalMode
   onClose: () => void
   report: Report | null
   selectedStockLabel: string
@@ -849,6 +855,8 @@ function FeedbackModal({
     return null
   }
 
+  const isMoreReportsMode = mode === 'moreReports'
+
   return (
     <div className="feedback-backdrop" role="presentation" onMouseDown={onClose}>
       <section
@@ -860,8 +868,16 @@ function FeedbackModal({
       >
         <div className="feedback-modal-header">
           <div>
-            <h2 id="feedback-title">방금 받은 AI 브리프, 실제로 도움이 되었나요?</h2>
-            <p>10초만 선택해주세요. 서비스 사용 안내를 신청하면 출시 후 3개월 무료 혜택을 드릴 예정입니다.</p>
+            <h2 id="feedback-title">
+              {isMoreReportsMode
+                ? '더 많은 리포트를 생성하고 싶으신가요?'
+                : '방금 받은 AI 브리프, 실제로 도움이 되었나요?'}
+            </h2>
+            <p>
+              {isMoreReportsMode
+                ? '현재 무료 리포트는 1회 제공됩니다. 더 많은 종목과 매일 업데이트 리포트를 사용해보고 싶다면 10초 피드백과 이메일을 남겨주세요. 신청자에게 출시 후 3개월 무료 혜택을 먼저 안내드릴 예정입니다.'
+                : '10초만 선택해주세요. 서비스 사용 안내를 신청하면 출시 후 3개월 무료 혜택을 드릴 예정입니다.'}
+            </p>
           </div>
           <button type="button" className="modal-close-button" onClick={onClose} aria-label="닫기">
             닫기
@@ -916,7 +932,11 @@ function FeedbackModal({
 
           <div className="feedback-submit-row">
             <button className="primary-button" type="submit" disabled={submitState === 'loading'}>
-              {submitState === 'loading' ? '제출 중...' : '피드백 제출하고 서비스 안내 받기'}
+              {submitState === 'loading'
+                ? '제출 중...'
+                : isMoreReportsMode
+                  ? '신청하고 더 많은 리포트 안내 받기'
+                  : '피드백 제출하고 서비스 안내 받기'}
             </button>
             {submitState === 'success' && <p>피드백이 저장되었습니다.</p>}
             {submitState === 'error' && <p>피드백 저장 중 문제가 발생했습니다.</p>}
