@@ -723,12 +723,13 @@ function LimitModal({ visible, onBetaClick }: { visible: boolean; onBetaClick: (
       <div>
         <h2 id="limit-title">다른 종목도 확인하고 싶으신가요?</h2>
         <p>
-          현재 무료 리포트는 IP당 1회 제공됩니다. 더 많은 종목과 매일 업데이트 리포트를
-          사용해보고 싶다면 이메일을 남겨주세요.
+          현재 무료 리포트는 IP당 1회 제공됩니다. 서비스 사용 안내를 신청하면 더 많은 종목과
+          매일 업데이트 리포트 소식을 먼저 받아볼 수 있고, 지금 신청 시 출시 후 3개월 무료 혜택을
+          드릴 예정입니다.
         </p>
       </div>
       <button className="primary-button" type="button" onClick={onBetaClick}>
-        베타 테스트 신청하기
+        서비스 사용 안내 받기
       </button>
     </section>
   )
@@ -795,7 +796,7 @@ function FeedbackSection({
     <section className={`feedback-section ${visible ? '' : 'is-muted'}`} ref={refTarget} aria-labelledby="feedback-title">
       <div className="section-heading">
         <h2 id="feedback-title">방금 받은 AI 브리프, 실제로 도움이 되었나요?</h2>
-        <p>10초만 선택해주세요. 이후 버전 개선에 반영됩니다.</p>
+        <p>10초만 선택해주세요. 서비스 사용 안내를 신청하면 출시 후 3개월 무료 혜택을 드릴 예정입니다.</p>
       </div>
 
       <form className="feedback-form" onSubmit={handleSubmit}>
@@ -826,7 +827,7 @@ function FeedbackSection({
 
         <div className="feedback-fields">
           <label>
-            후속 테스트 안내를 받을 이메일을 남겨주세요.
+            서비스 사용 안내를 받을 이메일을 남겨주세요.
             <input
               type="email"
               value={feedback.email}
@@ -846,7 +847,7 @@ function FeedbackSection({
 
         <div className="feedback-submit-row">
           <button className="primary-button" type="submit" disabled={submitState === 'loading'}>
-            {submitState === 'loading' ? '제출 중...' : '피드백 제출하고 베타 신청하기'}
+            {submitState === 'loading' ? '제출 중...' : '피드백 제출하고 서비스 안내 받기'}
           </button>
           {submitState === 'success' && <p>피드백이 저장되었습니다.</p>}
           {submitState === 'error' && <p>피드백 저장 중 문제가 발생했습니다.</p>}
