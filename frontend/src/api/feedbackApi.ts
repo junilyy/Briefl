@@ -1,8 +1,11 @@
 import { getUserIdFromCookie } from '../utils/cookie'
 import { getDeviceType, getTimeStamp, getUtm } from '../utils/meta'
 
-const GOOGLE_APPS_SCRIPT_URL = ''
-const FEEDBACK_SHEET_TABLE = 'briefl_report_feedback'
+const GOOGLE_APPS_SCRIPT_URL = import.meta.env.VITE_GOOGLE_APPS_SCRIPT_URL?.trim() ?? ''
+const VISITORS_SHEET_TABLE = 'visitors_ver2'
+const FEEDBACK_SHEET_TABLE = 'beta_testers_ver2'
+
+let clientIpPromise: Promise<string> | null = null
 
 type ReportFeedbackInput = {
   email: string
@@ -16,8 +19,57 @@ type ReportFeedbackInput = {
   comment: string
 }
 
+async function getClientIp() {
+  if (!clientIpPromise) {
+    clientIpPromise = fetch('https://jsonip.com?format=json')
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`${response.status} ${response.statusText}`)
+        }
+        return response.json() as Promise<{ ip?: string }>
+      })
+      .then((data) => data.ip ?? 'unknown')
+      .catch((error) => {
+        console.warn('IP 조회에 실패했습니다.', error)
+        return 'unknown'
+      })
+  }
+
+  return clientIpPromise
+}
+
+async function insertGoogleSheetRow(table: string, payload: Record<string, unknown>) {
+  if (!GOOGLE_APPS_SCRIPT_URL) {
+    console.log(`${table} payload`, payload)
+    return
+  }
+
+  const url = `${GOOGLE_APPS_SCRIPT_URL}?action=insert&table=${table}&data=${encodeURIComponent(
+    JSON.stringify(payload),
+  )}`
+
+  const response = await fetch(url)
+
+  if (!response.ok) {
+    throw new Error(`${response.status} ${response.statusText}`)
+  }
+}
+
+export async function submitVisitorLog() {
+  const payload = {
+    id: getUserIdFromCookie(),
+    landingUrl: window.location.href,
+    ip: await getClientIp(),
+    referer: document.referrer,
+    time_stamp: getTimeStamp(),
+    utm: getUtm(),
+    device: getDeviceType(),
+  }
+
+  await insertGoogleSheetRow(VISITORS_SHEET_TABLE, payload)
+}
+
 export async function submitReportFeedback(input: ReportFeedbackInput) {
-  // Google Sheet columns mirror these payload keys for the MVP feedback table.
   const payload = {
     id: getUserIdFromCookie(),
     email: input.email,
@@ -30,24 +82,12 @@ export async function submitReportFeedback(input: ReportFeedbackInput) {
     expectedFeature: input.expectedFeature,
     comment: input.comment,
     landingUrl: window.location.href,
+    ip: await getClientIp(),
     utm: getUtm(),
     device: getDeviceType(),
     userAgent: navigator.userAgent,
     time_stamp: getTimeStamp(),
   }
 
-  if (!GOOGLE_APPS_SCRIPT_URL) {
-    console.log('briefl_report_feedback payload', payload)
-    return
-  }
-
-  const url = `${GOOGLE_APPS_SCRIPT_URL}?action=insert&table=${FEEDBACK_SHEET_TABLE}&data=${encodeURIComponent(
-    JSON.stringify(payload),
-  )}`
-
-  const response = await fetch(url)
-
-  if (!response.ok) {
-    throw new Error(`${response.status} ${response.statusText}`)
-  }
+  await insertGoogleSheetRow(FEEDBACK_SHEET_TABLE, payload)
 }

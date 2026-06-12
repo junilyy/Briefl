@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { FormEvent, RefObject } from 'react'
 import { createReport, getStocks } from './api'
-import { submitReportFeedback } from './api/feedbackApi'
+import { submitReportFeedback, submitVisitorLog } from './api/feedbackApi'
 import type { Report, ReportSentimentAnalysis, Stock } from './types'
 import './App.css'
 
@@ -157,6 +157,7 @@ function App() {
   const [guideModalOpen, setGuideModalOpen] = useState(false)
   const [guideModalMode, setGuideModalMode] = useState<FeedbackModalMode>('reportFeedback')
   const reportRef = useRef<HTMLElement | null>(null)
+  const visitorLoggedRef = useRef(false)
 
   useEffect(() => {
     getStocks()
@@ -168,6 +169,17 @@ function App() {
         setStockState('error')
         setMessage(`지원 종목을 불러오지 못했습니다. ${error.message}`)
       })
+  }, [])
+
+  useEffect(() => {
+    if (visitorLoggedRef.current) {
+      return
+    }
+
+    visitorLoggedRef.current = true
+    submitVisitorLog().catch((error) => {
+      console.warn('방문자 로그 전송에 실패했습니다.', error)
+    })
   }, [])
 
   const selectedStock = useMemo(() => resolveStock(stockInput, stocks), [stockInput, stocks])
