@@ -10,12 +10,9 @@ type ReportFeedbackInput = {
   reportId: number | null
   reportDate: string
   lossAvoidanceHelp: string
-  informationGapReduced: string
-  trustScore: string
   mostUseful: string[]
-  painPoints: string[]
-  reuseIntent: string
   willingnessToPay: string
+  expectedFeature: string
   comment: string
 }
 
@@ -28,12 +25,9 @@ export async function submitReportFeedback(input: ReportFeedbackInput) {
     reportId: input.reportId,
     reportDate: input.reportDate,
     lossAvoidanceHelp: input.lossAvoidanceHelp,
-    informationGapReduced: input.informationGapReduced,
-    trustScore: input.trustScore,
     mostUseful: input.mostUseful.join(', '),
-    painPoints: input.painPoints.join(', '),
-    reuseIntent: input.reuseIntent,
     willingnessToPay: input.willingnessToPay,
+    expectedFeature: input.expectedFeature,
     comment: input.comment,
     landingUrl: window.location.href,
     utm: getUtm(),

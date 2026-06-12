@@ -8,10 +8,10 @@ import './App.css'
 type LoadState = 'idle' | 'loading' | 'success' | 'error'
 
 type FeedbackState = {
-  helpful: string
+  lossAvoidanceHelp: string
   mostUseful: string[]
-  missing: string[]
-  reuseIntent: string
+  willingnessToPay: string
+  expectedFeature: string
   email: string
   comment: string
 }
@@ -19,10 +19,10 @@ type FeedbackState = {
 type FeedbackModalMode = 'reportFeedback' | 'moreReports'
 
 const initialFeedback: FeedbackState = {
-  helpful: '',
+  lossAvoidanceHelp: '',
   mostUseful: [],
-  missing: [],
-  reuseIntent: '',
+  willingnessToPay: '',
+  expectedFeature: '',
   email: '',
   comment: '',
 }
@@ -33,8 +33,14 @@ const loadingSteps = [
   '가격 영향 포인트를 정리하고 있습니다',
 ]
 
-const usefulOptions = ['뉴스 요약', '호재·악재 분류', '가격 영향 가능성', '판단 근거', '체크 포인트']
-const missingOptions = ['뉴스가 부족함', '근거가 약함', '판단이 애매함', '화면이 복잡함', '신뢰하기 어려움']
+const usefulOptions = ['뉴스 요약', '호재/악재 분류', '가격 영향 가능성', '간접 이슈 분석', '체크 이벤트', '판단 근거']
+const willingnessOptions = ['무료면 이용', '1,000~3,000원', '5,000원 내외', '10,000원 이상', '이용 의향 없음']
+const expectedFeatureOptions = [
+  '과거 주가 그래프와 주요 뉴스 이벤트 연결',
+  '뉴스 신뢰도 표시',
+  '금리·환율·전쟁 등 매크로 영향 분석 강화',
+  '실시간으로 큰 이슈가 터졌을 때 알림',
+]
 
 const sentimentLabels: Record<string, string> = {
   POSITIVE: '호재',
@@ -809,12 +815,16 @@ function FeedbackModal({
 }) {
   const [feedback, setFeedback] = useState<FeedbackState>(initialFeedback)
   const [submitState, setSubmitState] = useState<LoadState>('idle')
+  const [emailError, setEmailError] = useState('')
 
   const updateSingle = (key: keyof FeedbackState, value: string) => {
     setFeedback((current) => ({ ...current, [key]: value }))
+    if (key === 'email' && value.trim()) {
+      setEmailError('')
+    }
   }
 
-  const toggleMulti = (key: 'mostUseful' | 'missing', value: string) => {
+  const toggleMulti = (key: 'mostUseful', value: string) => {
     setFeedback((current) => {
       const values = current[key]
       const nextValues = values.includes(value)
@@ -827,6 +837,13 @@ function FeedbackModal({
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+
+    if (!feedback.email.trim()) {
+      setEmailError('서비스 이용 안내를 받을 이메일을 입력해주세요.')
+      setSubmitState('idle')
+      return
+    }
+
     setSubmitState('loading')
 
     try {
@@ -835,13 +852,10 @@ function FeedbackModal({
         stockName: report?.stockName ?? selectedStockLabel,
         reportId: report?.reportId ?? null,
         reportDate: report?.reportDate ?? '',
-        lossAvoidanceHelp: feedback.helpful,
-        informationGapReduced: '',
-        trustScore: '',
+        lossAvoidanceHelp: feedback.lossAvoidanceHelp,
         mostUseful: feedback.mostUseful,
-        painPoints: feedback.missing,
-        reuseIntent: feedback.reuseIntent,
-        willingnessToPay: '',
+        willingnessToPay: feedback.willingnessToPay,
+        expectedFeature: feedback.expectedFeature,
         comment: feedback.comment,
       })
       setSubmitState('success')
@@ -871,12 +885,12 @@ function FeedbackModal({
             <h2 id="feedback-title">
               {isMoreReportsMode
                 ? '더 많은 리포트를 생성하고 싶으신가요?'
-                : '방금 받은 AI 브리프, 실제로 도움이 되었나요?'}
+                : '방금 본 AI 브리프가 실제로 도움이 되었나요?'}
             </h2>
             <p>
               {isMoreReportsMode
                 ? '현재 무료 리포트는 1회 제공됩니다. 더 많은 종목과 매일 업데이트 리포트를 사용해보고 싶다면 10초 피드백과 이메일을 남겨주세요. 신청자에게 출시 후 3개월 무료 혜택을 먼저 안내드릴 예정입니다.'
-                : '10초만 선택해주세요. 서비스 사용 안내를 신청하면 출시 후 3개월 무료 혜택을 드릴 예정입니다.'}
+                : '짧게 선택해주시면 다음 버전 개선에 반영하겠습니다.'}
             </p>
           </div>
           <button type="button" className="modal-close-button" onClick={onClose} aria-label="닫기">
@@ -886,59 +900,61 @@ function FeedbackModal({
 
         <form className="feedback-form" onSubmit={handleSubmit}>
           <FeedbackChoice
-            title="Q1. 리포트가 도움이 되었나요?"
+            title="이 브리프가 중요한 뉴스를 놓치지 않는 데 도움이 될 것 같나요?"
             options={['매우 도움됨', '도움됨', '보통', '도움 안 됨']}
-            selected={feedback.helpful}
-            onSelect={(value) => updateSingle('helpful', value)}
+            selected={feedback.lossAvoidanceHelp}
+            onSelect={(value) => updateSingle('lossAvoidanceHelp', value)}
           />
           <FeedbackChoice
-            title="Q2. 가장 유용했던 부분은 무엇인가요?"
+            title="어떤 부분이 가장 유용했나요?"
             options={usefulOptions}
             selectedValues={feedback.mostUseful}
             onToggle={(value) => toggleMulti('mostUseful', value)}
           />
           <FeedbackChoice
-            title="Q3. 부족했던 부분은 무엇인가요?"
-            options={missingOptions}
-            selectedValues={feedback.missing}
-            onToggle={(value) => toggleMulti('missing', value)}
+            title="이 정도 분석이 더 정교해진다면 월 얼마까지 이용할 의향이 있나요?"
+            options={willingnessOptions}
+            selected={feedback.willingnessToPay}
+            onSelect={(value) => updateSingle('willingnessToPay', value)}
           />
           <FeedbackChoice
-            title="Q4. 다시 사용해보고 싶나요?"
-            options={['매일 받고 싶음', '이슈 있을 때만', '가끔 확인', '잘 모르겠음']}
-            selected={feedback.reuseIntent}
-            onSelect={(value) => updateSingle('reuseIntent', value)}
+            title="다음 버전에서 추가된다면 가장 기대되는 기능은 무엇인가요?"
+            options={expectedFeatureOptions}
+            selected={feedback.expectedFeature}
+            onSelect={(value) => updateSingle('expectedFeature', value)}
           />
 
           <div className="feedback-fields">
             <label>
+              추가로 남기고 싶은 의견이 있다면 적어주세요. (선택)
+              <textarea
+                value={feedback.comment}
+                placeholder="예: 어떤 정보가 더 있으면 돈을 낼 만할지, 어떤 분석이 더 신뢰될지 등"
+                onChange={(event) => updateSingle('comment', event.target.value)}
+              />
+            </label>
+            <label className="feedback-email-field">
               서비스 사용 안내를 받을 이메일을 남겨주세요.
               <input
                 type="email"
+                required
                 value={feedback.email}
-                placeholder="email@example.com"
+                placeholder="이메일 주소를 입력해주세요"
+                aria-invalid={Boolean(emailError)}
+                aria-describedby={emailError ? 'feedback-email-error' : undefined}
                 onChange={(event) => updateSingle('email', event.target.value)}
               />
-            </label>
-            <label>
-              자유 의견
-              <textarea
-                value={feedback.comment}
-                placeholder="어떤 정보가 있으면 돈을 내고 쓸 만한지, 어떤 분석이 신뢰되는지 남겨주세요."
-                onChange={(event) => updateSingle('comment', event.target.value)}
-              />
+              {emailError && <span id="feedback-email-error" className="feedback-error">{emailError}</span>}
             </label>
           </div>
 
           <div className="feedback-submit-row">
             <button className="primary-button" type="submit" disabled={submitState === 'loading'}>
-              {submitState === 'loading'
-                ? '제출 중...'
-                : isMoreReportsMode
-                  ? '신청하고 더 많은 리포트 안내 받기'
-                  : '피드백 제출하고 서비스 안내 받기'}
+              {submitState === 'loading' ? '제출 중...' : '피드백 제출하기'}
             </button>
-            {submitState === 'success' && <p>피드백이 저장되었습니다.</p>}
+            {submitState === 'success' && (
+              <p>의견이 저장되었습니다. 서비스 이용 안내와 다음 버전 개선에 참고하겠습니다.</p>
+            )}
             {submitState === 'error' && <p>피드백 저장 중 문제가 발생했습니다.</p>}
           </div>
         </form>

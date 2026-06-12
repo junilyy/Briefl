@@ -1595,13 +1595,13 @@
 
 .feedback-form {
   display: grid;
-  gap: 12px;
+  gap: 14px;
 }
 
 .feedback-group {
   min-width: 0;
   margin: 0;
-  padding: 16px;
+  padding: 15px 16px;
   border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 14px;
   background: #fff;
@@ -1617,17 +1617,17 @@
 .choice-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
   margin-top: 12px;
 }
 
 .choice-button {
-  min-height: 40px;
+  min-height: 42px;
   border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 999px;
   background: #f8fafc;
   color: var(--color-muted);
-  padding: 0 13px;
+  padding: 0 15px;
   cursor: pointer;
   font-weight: 900;
 }
@@ -1640,8 +1640,7 @@
 
 .feedback-fields {
   display: grid;
-  grid-template-columns: minmax(240px, 0.8fr) minmax(280px, 1.2fr);
-  gap: 12px;
+  gap: 14px;
 }
 
 .feedback-fields label {
@@ -1668,9 +1667,16 @@
 }
 
 .feedback-fields textarea {
-  min-height: 112px;
+  min-height: 96px;
   padding: 14px 15px;
   resize: vertical;
+}
+
+.feedback-error {
+  color: #b91c1c;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.4;
 }
 
 .feedback-submit-row {
