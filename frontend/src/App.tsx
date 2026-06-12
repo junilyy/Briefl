@@ -33,6 +33,26 @@ const loadingSteps = [
 
 const usefulOptions = ['뉴스 요약', '호재·악재 분류', '가격 영향 가능성', '판단 근거', '체크 포인트']
 const missingOptions = ['뉴스가 부족함', '근거가 약함', '판단이 애매함', '화면이 복잡함', '신뢰하기 어려움']
+const heroSlides = [
+  {
+    label: '01 / 놓친 뉴스',
+    title: ['악재는 보통', '가격보다 늦게 보입니다.'],
+    copy: '뉴스를 뒤늦게 찾는 순간, 시장은 이미 반응했을 수 있습니다. 브리플은 내 관심 종목에 영향을 줄 수 있는 뉴스를 먼저 모아 보여줍니다.',
+    action: '다음 보기',
+  },
+  {
+    label: '02 / AI 분류',
+    title: ['뉴스를 모으는 것보다', '방향을 가르는 게 중요합니다.'],
+    copy: '관련 뉴스를 호재·악재·중립 가능성으로 나누고, 가격에 영향을 줄 수 있는 실적·정책·산업·수급 포인트를 함께 정리합니다.',
+    action: '리포트 화면 보기',
+  },
+  {
+    label: '03 / 무료 체험',
+    title: ['내 주식 떨어지고 나서야', '악재 뉴스를 찾고 있나요?'],
+    copy: '관심 종목을 입력하면 오늘 나온 뉴스를 AI가 모아 호재·악재·중립 가능성과 가격 영향 포인트를 1분 만에 정리해드립니다.',
+    action: 'AI 리포트 체험하기',
+  },
+]
 
 const sentimentLabels: Record<string, string> = {
   POSITIVE: '호재',
@@ -226,7 +246,6 @@ function App() {
 
   return (
     <main className="page-shell">
-      <TopNav />
       <HeroSection
         stockInput={stockInput}
         reportState={reportState}
@@ -275,23 +294,6 @@ function resolveStock(value: string, stocks: Stock[]) {
   })
 }
 
-function TopNav() {
-  return (
-    <nav className="top-nav" aria-label="브리플">
-      <a className="brand" href="#page-title" aria-label="BRIEFL 홈">
-        <span className="brand-mark" aria-hidden="true">
-          <span />
-        </span>
-        <span className="brand-copy">
-          <span className="brand-name">BRIEFL</span>
-          <span className="brand-subtitle">브리플</span>
-        </span>
-      </a>
-      <span className="nav-status">AI News Risk Radar</span>
-    </nav>
-  )
-}
-
 function HeroSection({
   stockInput,
   reportState,
@@ -303,27 +305,118 @@ function HeroSection({
   onStockInput: (value: string) => void
   onExperience: () => void
 }) {
+  const [activeSlide, setActiveSlide] = useState(0)
+  const currentSlide = heroSlides[activeSlide]
+  const finalSlideIndex = heroSlides.length - 1
+  const isFinalSlide = activeSlide === finalSlideIndex
+  const goNext = () => setActiveSlide((current) => Math.min(finalSlideIndex, current + 1))
+
   return (
     <section className="hero-section" aria-labelledby="page-title">
       <div className="hero-copy">
+        <span className="hero-slide-label">{currentSlide.label}</span>
         <h1 id="page-title">
-          <span>내 주식 떨어지고 나서야</span>
-          <span>악재 뉴스를 찾고 있나요?</span>
+          {currentSlide.title.map((line) => (
+            <span key={line}>{line}</span>
+          ))}
         </h1>
-        <p>
-          관심 종목을 입력하면 오늘 나온 뉴스를 AI가 모아 호재·악재·중립 가능성과 가격 영향
-          포인트를 1분 만에 정리해드립니다.
-        </p>
-        <HeroExperienceForm
-          stockInput={stockInput}
-          reportState={reportState}
-          onStockInput={onStockInput}
-          onExperience={onExperience}
-        />
+        <p>{currentSlide.copy}</p>
+
+        {isFinalSlide ? (
+          <HeroExperienceForm
+            stockInput={stockInput}
+            reportState={reportState}
+            onStockInput={onStockInput}
+            onExperience={onExperience}
+          />
+        ) : (
+          <div className="hero-slide-actions">
+            <button className="primary-button" type="button" onClick={goNext}>
+              {currentSlide.action}
+            </button>
+            <button className="secondary-dark-button" type="button" onClick={() => setActiveSlide(finalSlideIndex)}>
+              바로 체험하기
+            </button>
+          </div>
+        )}
+
+        <div className="hero-slide-dots" aria-label="서비스 소개 슬라이드">
+          {heroSlides.map((slide, index) => (
+            <button
+              type="button"
+              key={slide.label}
+              className={index === activeSlide ? 'is-active' : ''}
+              onClick={() => setActiveSlide(index)}
+              aria-label={`${index + 1}번째 슬라이드 보기`}
+              aria-current={index === activeSlide ? 'step' : undefined}
+            />
+          ))}
+        </div>
       </div>
 
-      <HeroPreviewCard />
+      {isFinalSlide ? <HeroPreviewCard /> : <HeroStoryCard activeSlide={activeSlide} />}
     </section>
+  )
+}
+
+function HeroStoryCard({ activeSlide }: { activeSlide: number }) {
+  if (activeSlide === 0) {
+    return (
+      <aside className="story-card" aria-label="뉴스 리스크 감지 예시">
+        <div className="story-card-top">
+          <span>NEWS RISK RADAR</span>
+          <strong>장 시작 전</strong>
+        </div>
+        <div className="risk-timeline">
+          <div>
+            <time>08:42</time>
+            <strong>경쟁사 가격 인하 기사</strong>
+            <span className="negative">악재 후보</span>
+          </div>
+          <div>
+            <time>09:11</time>
+            <strong>섹터 투자심리 약화</strong>
+            <span className="neutral">확인 필요</span>
+          </div>
+          <div>
+            <time>09:30</time>
+            <strong>주가 갭하락 출발</strong>
+            <span className="negative">사후 발견</span>
+          </div>
+        </div>
+        <p>가격이 움직인 뒤 뉴스를 찾는 흐름을 줄이는 것이 첫 번째 목표입니다.</p>
+      </aside>
+    )
+  }
+
+  return (
+    <aside className="story-card" aria-label="AI 뉴스 분류 예시">
+      <div className="story-card-top">
+        <span>AI CLASSIFICATION</span>
+        <strong>오늘의 분류</strong>
+      </div>
+      <div className="classification-board">
+        <div className="negative">
+          <span>악재</span>
+          <strong>수요 둔화</strong>
+          <small>가격 압박 가능성</small>
+        </div>
+        <div className="neutral">
+          <span>중립</span>
+          <strong>환율 변동</strong>
+          <small>추가 확인 필요</small>
+        </div>
+        <div className="positive">
+          <span>호재</span>
+          <strong>업황 회복</strong>
+          <small>하단 방어 요인</small>
+        </div>
+      </div>
+      <div className="story-insight">
+        <span>가격 영향 포인트</span>
+        <strong>실적 기대보다 경쟁사 가격 전략을 먼저 확인</strong>
+      </div>
+    </aside>
   )
 }
 
