@@ -272,14 +272,6 @@
   font-weight: 800;
 }
 
-.hero-entry-help {
-  margin: 0;
-  color: rgba(255, 255, 255, 0.62);
-  font-size: 13px;
-  line-height: 1.55;
-  font-weight: 800;
-}
-
 .generator-status {
   color: var(--color-muted);
 }

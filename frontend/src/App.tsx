@@ -358,7 +358,6 @@ function HeroExperienceForm({
           AI 리포트 체험하기
         </button>
       </div>
-      <p className="hero-entry-help">입력한 종목으로 아래 생성 영역에서 실제 리포트를 만들어볼 수 있습니다.</p>
     </div>
   )
 }
