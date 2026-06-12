@@ -940,7 +940,7 @@
 }
 
 .report-output .judgement-badge > span {
-  justify-self: center;
+  justify-self: start;
   color: #0f172a;
   font-size: 13px;
   font-weight: 950;
@@ -961,9 +961,10 @@
 }
 
 .judgement-score-row {
-  display: grid;
-  justify-items: center;
-  gap: 8px;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 10px;
   text-align: center;
 }
 
@@ -978,12 +979,12 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 30px;
-  padding: 0 12px;
+  min-height: 28px;
+  padding: 0 10px;
   border-radius: 999px;
   background: rgba(16, 185, 129, 0.12);
   color: #064e3b;
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 900;
   line-height: 1;
   letter-spacing: -0.035em;
