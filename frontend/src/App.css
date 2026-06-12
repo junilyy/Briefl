@@ -242,7 +242,16 @@
 .quick-stock-row {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 8px;
+}
+
+.quick-stock-row > span {
+  color: currentColor;
+  font-size: 12px;
+  font-weight: 900;
+  opacity: 0.72;
+  margin-right: 2px;
 }
 
 .quick-stock-row button {
@@ -262,6 +271,11 @@
   border-color: rgba(18, 58, 114, 0.12);
   background: #f8fbff;
   color: var(--color-primary);
+}
+
+.generator-section .quick-stock-row > span {
+  color: var(--color-subtle);
+  opacity: 1;
 }
 
 .hero-status,

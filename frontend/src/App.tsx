@@ -460,6 +460,7 @@ function StockSearchForm({
         </button>
       </div>
       <div className="quick-stock-row" aria-label="빠른 종목 선택">
+        <span>체험 가능 종목</span>
         {stocks.slice(0, 5).map((stock) => (
           <button type="button" key={stock.stockName} onClick={() => onStockInput(stockLabel(stock))}>
             {stockLabel(stock)}
@@ -562,8 +563,11 @@ function ReportGenerator({
     <section className="generator-section" id="report-generator" ref={refTarget}>
       <div className="generator-copy">
         <span className="eyebrow">Free AI Report</span>
-        <h2>무료 리포트 1개를 바로 생성해보세요.</h2>
-        <p>관심 종목을 입력하면 오늘 나온 뉴스 기준으로 핵심 판단 카드를 만듭니다.</p>
+        <h2>지금은 5개 종목으로 먼저 체험해볼 수 있습니다.</h2>
+        <p>
+          삼성전자, NAVER, 카카오, Tesla, NVIDIA 중 하나를 선택하거나 직접 입력해 오늘의 AI 뉴스
+          브리프를 생성해보세요.
+        </p>
       </div>
       <StockSearchForm
         idPrefix="generator"
