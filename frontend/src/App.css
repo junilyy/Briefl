@@ -419,6 +419,10 @@
   color: var(--color-muted);
 }
 
+.generator-status.error {
+  color: #dc2626;
+}
+
 .preview-card {
   align-self: stretch;
   display: grid;
