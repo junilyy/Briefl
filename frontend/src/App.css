@@ -772,7 +772,8 @@
 }
 
 .report-output .report-main-grid {
-  grid-template-columns: minmax(0, 1.1fr) minmax(300px, 0.62fr);
+  grid-template-columns: minmax(280px, 0.72fr) minmax(360px, 1fr);
+  align-items: start;
   gap: 16px;
   padding: 22px 34px 24px;
   background: linear-gradient(180deg, #eff6ff, #fff);
@@ -789,7 +790,7 @@
 .report-output .report-summary-card {
   border-color: rgba(37, 99, 235, 0.24);
   position: relative;
-  padding: 20px 22px;
+  padding: 18px 20px;
 }
 
 .report-output .report-summary-card::before {
@@ -816,9 +817,13 @@
 
 .report-output .report-summary-card p,
 .report-output .impact-card p {
-  color: #1f2937;
+  color: #0f172a;
   font-size: 15px;
   line-height: 1.72;
+}
+
+.report-output .report-summary-card p {
+  line-height: 1.62;
 }
 
 .impact-card strong {
@@ -934,7 +939,7 @@
 }
 
 .core-news-list small {
-  color: #475569;
+  color: #1f2937;
   font-weight: 800;
   line-height: 1.4;
 }
@@ -980,7 +985,7 @@
 
 .reason-card p {
   margin: 12px 0 0;
-  color: #374151;
+  color: #0f172a;
   line-height: 1.68;
 }
 
@@ -1042,7 +1047,7 @@
 
 .check-list p {
   margin: 5px 0 0;
-  color: #374151;
+  color: #0f172a;
   line-height: 1.6;
 }
 
@@ -1051,7 +1056,7 @@
   padding: 13px 15px;
   border-radius: 12px;
   background: #eff6ff;
-  color: #475569;
+  color: #1f2937;
   font-size: 12px;
   font-weight: 800;
   line-height: 1.55;
