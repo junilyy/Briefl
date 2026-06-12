@@ -225,40 +225,43 @@ function App() {
   }
 
   return (
-    <main className="page-shell">
-      <HeroSection
-        stockInput={stockInput}
-        reportState={reportState}
-        onStockInput={setStockInput}
-        onExperience={handleHeroExperience}
-      />
-      <ProblemSection />
-      <FeatureSection />
-      <ReportGenerator
-        refTarget={reportRef}
-        report={report}
-        reportState={reportState}
-        selectedStockLabel={selectedStockLabel}
-        stocks={stocks}
-        stockInput={stockInput}
-        stockState={stockState}
-        message={message}
-        onStockInput={setStockInput}
-        onCreate={handleCreateReport}
-      />
-      <ServiceGuidePanel
-        refTarget={guidePanelRef}
-        visible={Boolean(report) || limitVisible}
-        mode={limitVisible ? 'limit' : 'afterReport'}
-        onGuideClick={() => setGuideModalOpen(true)}
-      />
-      <FeedbackModal
-        open={guideModalOpen}
-        onClose={() => setGuideModalOpen(false)}
-        report={report}
-        selectedStockLabel={selectedStockLabel}
-      />
-    </main>
+    <>
+      <LaunchIntro />
+      <main className="page-shell">
+        <HeroSection
+          stockInput={stockInput}
+          reportState={reportState}
+          onStockInput={setStockInput}
+          onExperience={handleHeroExperience}
+        />
+        <ProblemSection />
+        <FeatureSection />
+        <ReportGenerator
+          refTarget={reportRef}
+          report={report}
+          reportState={reportState}
+          selectedStockLabel={selectedStockLabel}
+          stocks={stocks}
+          stockInput={stockInput}
+          stockState={stockState}
+          message={message}
+          onStockInput={setStockInput}
+          onCreate={handleCreateReport}
+        />
+        <ServiceGuidePanel
+          refTarget={guidePanelRef}
+          visible={Boolean(report) || limitVisible}
+          mode={limitVisible ? 'limit' : 'afterReport'}
+          onGuideClick={() => setGuideModalOpen(true)}
+        />
+        <FeedbackModal
+          open={guideModalOpen}
+          onClose={() => setGuideModalOpen(false)}
+          report={report}
+          selectedStockLabel={selectedStockLabel}
+        />
+      </main>
+    </>
   )
 }
 
@@ -287,12 +290,6 @@ function HeroSection({
 }) {
   return (
     <section className="hero-section" aria-labelledby="page-title">
-      <div className="hero-intro-sequence" aria-hidden="true">
-        <span className="intro-step intro-step-one">더 이상 손해보기 싫다면</span>
-        <span className="intro-step intro-step-two">한눈에 원하는 주식 정보를 찾고 싶다면</span>
-        <span className="intro-step intro-step-three">BRIEFL</span>
-      </div>
-
       <div className="hero-final-layout">
         <div className="hero-copy">
           <h1 id="page-title">
@@ -314,6 +311,30 @@ function HeroSection({
         <HeroPreviewCard />
       </div>
     </section>
+  )
+}
+
+function LaunchIntro() {
+  return (
+    <div className="launch-intro" aria-hidden="true">
+      <div className="launch-grid" />
+      <div className="launch-scan" />
+      <div className="launch-signal-card launch-card-left">
+        <span>RISK DETECTED</span>
+        <strong>-0.7</strong>
+        <small>악재 신호 우세</small>
+      </div>
+      <div className="launch-signal-card launch-card-right">
+        <span>NEWS BRIEF</span>
+        <strong>3개 이슈 분류</strong>
+        <small>악재 2 · 중립 1 · 호재 1</small>
+      </div>
+      <div className="launch-copy">
+        <span className="launch-line launch-line-one">더 이상 손해보기 싫다면</span>
+        <span className="launch-line launch-line-two">한눈에 원하는 주식 정보를 찾고 싶다면</span>
+        <span className="launch-brand">BRIEFL</span>
+      </div>
+    </div>
   )
 }
 
