@@ -117,55 +117,6 @@
   animation: launchBrandReveal 1.58s cubic-bezier(0.2, 0.9, 0.2, 1) 3.15s both;
 }
 
-.launch-signal-card {
-  position: absolute;
-  z-index: 1;
-  display: grid;
-  gap: 10px;
-  min-width: clamp(280px, 21vw, 360px);
-  padding: 24px 26px;
-  border: 1px solid rgba(191, 219, 254, 0.24);
-  border-radius: 28px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.08));
-  box-shadow:
-    0 30px 90px rgba(2, 6, 23, 0.36),
-    inset 0 1px 0 rgba(255, 255, 255, 0.16);
-  backdrop-filter: blur(22px);
-  opacity: 0;
-}
-
-.launch-signal-card span {
-  color: #bfdbfe;
-  font-size: 12px;
-  font-weight: 900;
-  letter-spacing: 0.08em;
-}
-
-.launch-signal-card strong {
-  color: #fff;
-  font-size: clamp(30px, 2.5vw, 42px);
-  line-height: 1.1;
-}
-
-.launch-signal-card small {
-  color: rgba(255, 255, 255, 0.74);
-  font-size: 15px;
-  font-weight: 800;
-}
-
-.launch-card-left {
-  left: clamp(32px, 7vw, 120px);
-  top: 18vh;
-  animation: launchCardFloat 3.8s ease 480ms both;
-}
-
-.launch-card-right {
-  right: clamp(32px, 7vw, 120px);
-  bottom: 18vh;
-  animation: launchCardFloat 3.6s ease 1.4s both reverse;
-}
-
 .hero-section,
 .problem-section,
 .feature-section,
@@ -304,24 +255,6 @@
 @keyframes scanRotate {
   to {
     transform: rotate(360deg);
-  }
-}
-
-@keyframes launchCardFloat {
-  0% {
-    opacity: 0;
-    transform: translateY(24px) scale(0.96);
-  }
-
-  20%,
-  82% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-
-  100% {
-    opacity: 0;
-    transform: translateY(-18px) scale(1.02);
   }
 }
 
@@ -1444,10 +1377,6 @@
 }
 
 @media (max-width: 1120px) {
-  .launch-signal-card {
-    display: none;
-  }
-
   .hero-final-layout,
   .target-grid,
   .feature-grid,

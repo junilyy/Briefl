@@ -319,16 +319,6 @@ function LaunchIntro() {
     <div className="launch-intro" aria-hidden="true">
       <div className="launch-grid" />
       <div className="launch-scan" />
-      <div className="launch-signal-card launch-card-left">
-        <span>RISK DETECTED</span>
-        <strong>-0.7</strong>
-        <small>악재 신호 우세</small>
-      </div>
-      <div className="launch-signal-card launch-card-right">
-        <span>NEWS BRIEF</span>
-        <strong>3개 이슈 분류</strong>
-        <small>악재 2 · 중립 1 · 호재 1</small>
-      </div>
       <div className="launch-copy">
         <span className="launch-line launch-line-one">더 이상 손해보기 싫다면</span>
         <span className="launch-line launch-line-two">한눈에 원하는 주식 정보를 찾고 싶다면</span>
