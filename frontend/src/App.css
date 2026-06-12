@@ -938,6 +938,14 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.86);
 }
 
+.report-output .judgement-badge > span {
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 950;
+  letter-spacing: -0.01em;
+  opacity: 0.7;
+}
+
 .judgement-badge.positive {
   border-color: rgba(16, 185, 129, 0.46);
   background: linear-gradient(180deg, #ecfdf5, #fff);
@@ -951,23 +959,25 @@
 }
 
 .judgement-score-row {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: baseline;
-  gap: 10px;
+  gap: 16px;
 }
 
 .judgement-score-row strong {
-  font-size: 40px;
+  font-size: 46px;
   line-height: 1.08;
   letter-spacing: -0.045em;
 }
 
 .judgement-score-row em {
   font-style: normal;
-  font-size: 22px;
+  color: #064e3b;
+  font-size: 42px;
   font-weight: 900;
-  letter-spacing: -0.035em;
+  line-height: 1;
+  letter-spacing: -0.055em;
   opacity: 1;
 }
 
@@ -1001,6 +1011,14 @@
   font-size: 13px;
   font-weight: 900;
   opacity: 1;
+}
+
+.report-output .judgement-badge .impact-meter-labels span {
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 950;
+  letter-spacing: -0.03em;
+  opacity: 0.78;
 }
 
 .report-summary-card,
