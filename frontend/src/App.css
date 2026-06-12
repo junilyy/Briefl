@@ -82,6 +82,9 @@
 .launch-line,
 .launch-brand {
   position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(100%, 1040px);
   max-width: min(100%, 1040px);
   opacity: 0;
   color: #fff;
@@ -99,6 +102,7 @@
   font-family: "Plus Jakarta Sans", "IBM Plex Sans KR", sans-serif;
   font-size: clamp(54px, 8vw, 128px);
   letter-spacing: 0.1em;
+  padding-left: 0.1em;
 }
 
 .launch-line-one {
@@ -205,20 +209,20 @@
 @keyframes launchTextOne {
   0% {
     opacity: 0;
-    transform: translateY(36px) scale(0.98);
+    transform: translate(-50%, calc(-50% + 36px)) scale(0.98);
     filter: blur(10px);
   }
 
   18%,
   72% {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translate(-50%, -50%) scale(1);
     filter: blur(0);
   }
 
   100% {
     opacity: 0;
-    transform: translateY(-34px) scale(1.02);
+    transform: translate(-50%, calc(-50% - 34px)) scale(1.02);
     filter: blur(10px);
   }
 }
@@ -226,20 +230,20 @@
 @keyframes launchTextTwo {
   0% {
     opacity: 0;
-    transform: translateY(34px) scale(0.98);
+    transform: translate(-50%, calc(-50% + 34px)) scale(0.98);
     filter: blur(10px);
   }
 
   16%,
   74% {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translate(-50%, -50%) scale(1);
     filter: blur(0);
   }
 
   100% {
     opacity: 0;
-    transform: translateY(-34px) scale(1.02);
+    transform: translate(-50%, calc(-50% - 34px)) scale(1.02);
     filter: blur(10px);
   }
 }
@@ -247,20 +251,20 @@
 @keyframes launchBrandReveal {
   0% {
     opacity: 0;
-    transform: translateY(30px) scale(0.92);
+    transform: translate(-50%, calc(-50% + 30px)) scale(0.92);
     filter: blur(12px);
   }
 
   28%,
   74% {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translate(-50%, -50%) scale(1);
     filter: blur(0);
   }
 
   100% {
     opacity: 0;
-    transform: translateY(-18px) scale(1.08);
+    transform: translate(-50%, calc(-50% - 18px)) scale(1.08);
     filter: blur(8px);
   }
 }
