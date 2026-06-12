@@ -30,7 +30,7 @@ const initialFeedback: FeedbackState = {
 const loadingSteps = [
   '관련 뉴스를 수집하고 있습니다',
   '호재·악재 가능성을 분석하고 있습니다',
-  '가격 영향 포인트를 정리하고 있습니다',
+  '가격 영향 변수를 정리하고 있습니다',
 ]
 
 const usefulOptions = ['뉴스 요약', '호재/악재 분류', '가격 영향 가능성', '간접 이슈 분석', '체크 이벤트', '판단 근거']
@@ -307,8 +307,8 @@ function HeroSection({
             <span>악재 뉴스를 찾고 있나요?</span>
           </h1>
           <p>
-            관심 종목을 입력하면 오늘 나온 뉴스를 AI가 모아 호재·악재·중립 가능성과 가격 영향
-            포인트를 1분 만에 정리해드립니다.
+            떨어지고 난 뒤에 뉴스를 찾지 않도록, AI가 관심 종목의 악재 신호와 가격 영향 포인트를
+            1분 만에 정리해드립니다.
           </p>
           <HeroExperienceForm
             stockInput={stockInput}
@@ -435,8 +435,8 @@ function HeroPreviewCard() {
       </div>
 
       <div className="preview-check">
-        <span>투자자가 바로 볼 것</span>
-        <strong>실적 발표 전 수요 전망과 경쟁사 가격 전략</strong>
+        <span>오늘의 판단 포인트</span>
+        <strong>실적 발표 전 수요 전망과 경쟁사 가격 영향 변수</strong>
       </div>
     </aside>
   )
@@ -499,27 +499,27 @@ function ProblemSection() {
   return (
     <section className="problem-section" aria-labelledby="problem-title">
       <div className="section-heading">
-        <h2 id="problem-title">뉴스를 봐도 어렵고, 안 보면 늦습니다.</h2>
+        <h2 id="problem-title">문제는 뉴스가 많은 게 아니라, 중요한 신호를 늦게 아는 것입니다.</h2>
       </div>
       <div className="target-grid">
         <article>
           <span>초보 투자자</span>
-          <h3>뉴스를 봐도 해석이 어려운 분</h3>
+          <h3>뉴스를 봐도 의미 해석이 어려운 분</h3>
           <p>
-            뉴스 제목은 봤는데 이게 호재인지 악재인지 판단하기 어렵다면, AI가 핵심 내용과
-            방향성을 먼저 정리해드립니다.
+            기사 제목만으로는 호재인지 악재인지 판단하기 어렵습니다. BRIEFL은 뉴스의 방향성과
+            근거를 먼저 정리합니다.
           </p>
         </article>
         <article>
-          <span>경험 투자자</span>
-          <h3>관심 종목이 많아 뉴스를 다 챙기기 어려운 분</h3>
+          <span>관심 종목 다수 보유자</span>
+          <h3>악재를 뒤늦게 확인해본 경험이 있는 분</h3>
           <p>
-            이미 투자 중이어도 모든 뉴스와 이슈를 매일 따라가기는 어렵습니다. 종목별 주요
-            이슈와 체크 포인트만 빠르게 보여드립니다.
+            관심 종목이 많을수록 중요한 이슈를 놓치기 쉽습니다. BRIEFL은 놓치기 쉬운 악재
+            신호와 간접 이슈까지 함께 보여줍니다.
           </p>
         </article>
       </div>
-      <p className="problem-punchline">초보자에게는 해석을, 경험자에게는 시간을 줄여드립니다.</p>
+      <p className="problem-punchline">뉴스를 더 많이 보게 하는 것이 아니라, 놓치면 손해가 될 신호를 먼저 정리합니다.</p>
     </section>
   )
 }
@@ -535,8 +535,8 @@ function FeatureSection() {
       copy: '뉴스가 어떤 방향의 이슈인지 먼저 구분합니다.',
     },
     {
-      title: '가격 영향 포인트 정리',
-      copy: '실적, 정책, 산업, 수급 중 무엇을 봐야 하는지 알려드립니다.',
+      title: '가격 영향 변수 정리',
+      copy: '실적, 정책, 산업, 수급 중 어떤 요인을 확인해야 하는지 정리합니다.',
     },
   ]
 
@@ -633,7 +633,7 @@ function ReportResult({
       <div className="report-result empty-result">
         <span>REPORT OUTPUT</span>
         <h3>{selectedStockLabel || '관심 종목'} 리포트가 여기에 표시됩니다.</h3>
-        <p>종합 판단, 핵심 뉴스, 뉴스 요약, 판단 근거, 체크 포인트를 카드형으로 보여드립니다.</p>
+        <p>종합 판단, 핵심 뉴스, 가격 영향 변수, 판단 근거, 체크 포인트를 카드형으로 보여드립니다.</p>
       </div>
     )
   }
@@ -681,7 +681,7 @@ function ReportResult({
           <p>{report.briefSummary}</p>
         </section>
         <section className={`impact-card ${sentimentTone(report.priceImpact.direction)}`}>
-          <span>가격 영향 포인트</span>
+          <span>가격 영향 변수</span>
           <strong>{report.priceImpact.direction}</strong>
           <p>{report.priceImpact.reason}</p>
         </section>
