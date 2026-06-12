@@ -950,16 +950,25 @@
   color: #b91c1c;
 }
 
-.judgement-badge strong {
-  font-size: 38px;
-  line-height: 1.12;
-  letter-spacing: -0.04em;
+.judgement-score-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px;
 }
 
-.judgement-badge em {
+.judgement-score-row strong {
+  font-size: 40px;
+  line-height: 1.08;
+  letter-spacing: -0.045em;
+}
+
+.judgement-score-row em {
   font-style: normal;
+  font-size: 22px;
   font-weight: 900;
-  opacity: 0.78;
+  letter-spacing: -0.035em;
+  opacity: 1;
 }
 
 .impact-meter {
@@ -986,12 +995,12 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 4px;
-  color: #1e3a8a;
+  margin-top: 6px;
+  color: #0f172a;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 900;
-  opacity: 0.9;
+  opacity: 1;
 }
 
 .report-summary-card,

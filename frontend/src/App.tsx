@@ -640,8 +640,10 @@ function ReportResult({
         </div>
         <div className={`judgement-badge ${impactTone(report.newsImpactScore)}`}>
           <span>종합 판단</span>
-          <strong>{impactLabel(report.newsImpactScore)}</strong>
-          <em>{formatScore(report.newsImpactScore)}</em>
+          <div className="judgement-score-row">
+            <strong>{impactLabel(report.newsImpactScore)}</strong>
+            <em>{formatScore(report.newsImpactScore)}</em>
+          </div>
           <div className="impact-meter" aria-hidden="true">
             <i style={{ left: scorePosition(report.newsImpactScore) }} />
           </div>
