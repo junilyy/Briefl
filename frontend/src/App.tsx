@@ -780,20 +780,18 @@ function ServiceGuidePanel({
       <div className="limit-copy">
         <span className="limit-kicker">서비스 안내 신청</span>
         <h2 id="guide-title">
-          {isAfterReport ? '더 많은 리포트를 생성하고 싶다면' : '다른 종목도 확인하고 싶으신가요?'}
+          {isAfterReport ? '다른 종목 리포트도 받아보고 싶다면' : '다른 종목도 분석해보고 싶다면'}
         </h2>
         <p>
           {isAfterReport
-            ? '오늘 받은 브리프가 쓸만했다면 10초 피드백과 이메일을 남겨주세요. 신청자에게는 추가 종목 리포트, 매일 업데이트 소식, 출시 후 3개월 무료 혜택을 먼저 안내드릴 예정입니다.'
-            : '현재 무료 리포트는 IP당 1회 제공됩니다. 더 많은 종목을 확인하고 싶다면 10초 피드백과 이메일을 남겨주세요.'}
+            ? '이 브리프가 도움이 되었다면 이메일을 남겨주세요. 추가 종목 리포트와 서비스 이용 안내를 먼저 보내드릴게요.'
+            : '10초 피드백과 이메일을 남기면 추가 종목 리포트와 서비스 이용 안내를 받아볼 수 있습니다.'}
         </p>
       </div>
       <div className="limit-action-card">
-        <div className="limit-benefits" aria-label="서비스 안내 신청 혜택">
-          <span>출시 후 3개월 무료</span>
-          <span>추가 종목 리포트 안내</span>
-          <span>매일 업데이트 소식</span>
-        </div>
+        <span className="limit-card-kicker">서비스 안내 신청</span>
+        <strong>추가 종목 리포트와 이용 안내를 받아보세요.</strong>
+        <p>짧은 피드백을 남기면 다음 버전 개선에 반영됩니다.</p>
         <button className="primary-button" type="button" onClick={onGuideClick}>
           더 많은 리포트 신청하기
         </button>
@@ -887,18 +885,13 @@ function FeedbackModal({
           <div>
             <h2 id="feedback-title">
               {isMoreReportsMode
-                ? '더 많은 리포트를 생성하고 싶으신가요?'
+                ? '추가 리포트 안내를 받아보세요'
                 : '방금 본 AI 브리프가 실제로 도움이 되었나요?'}
             </h2>
             {isMoreReportsMode ? (
               <div className="feedback-modal-copy">
-                <p>
-                  현재 리포트는 1회 제공됩니다. 더 많은 종목과 매일 업데이트 리포트를 사용해보고 싶다면
-                  피드백과 이메일을 남겨주세요.
-                </p>
-                <p>
-                  신청자에게는 서비스 이용 절차와 <strong>3개월 무료 혜택</strong>을 제공드립니다.
-                </p>
+                <p>짧은 피드백과 이메일을 남겨주시면 추가 종목 리포트와 서비스 이용 안내를 보내드릴게요.</p>
+                <small>초기 신청자 혜택은 추후 안내드릴 예정입니다.</small>
               </div>
             ) : (
               <p>짧게 선택해주시면 다음 버전 개선에 반영하겠습니다.</p>
@@ -917,19 +910,19 @@ function FeedbackModal({
             onSelect={(value) => updateSingle('lossAvoidanceHelp', value)}
           />
           <FeedbackChoice
-            title="어떤 부분이 가장 유용했나요?"
+            title="가장 유용했던 부분은 무엇인가요?"
             options={usefulOptions}
             selectedValues={feedback.mostUseful}
             onToggle={(value) => toggleMulti('mostUseful', value)}
           />
           <FeedbackChoice
-            title="월 얼마까지 이용할 의향이 있나요?"
+            title="분석이 더 정교해진다면 월 얼마까지 이용할 의향이 있나요?"
             options={willingnessOptions}
             selected={feedback.willingnessToPay}
             onSelect={(value) => updateSingle('willingnessToPay', value)}
           />
           <FeedbackChoice
-            title="다음 버전에서 추가된다면 가장 기대되는 기능은 무엇인가요?"
+            title="다음 버전에서 가장 기대되는 기능은 무엇인가요?"
             options={expectedFeatureOptions}
             selected={feedback.expectedFeature}
             onSelect={(value) => updateSingle('expectedFeature', value)}
@@ -938,17 +931,17 @@ function FeedbackModal({
           <div className="feedback-fields">
             <label>
               <span className="feedback-label-row">
-                추가로 남기고 싶은 의견이 있다면 적어주세요.
+                추가 의견이 있다면 남겨주세요.
                 <em>선택</em>
               </span>
               <textarea
                 value={feedback.comment}
-                placeholder="예: 어떤 부분이 도움이 되었는지, 어떤 부분이 보완되면 더 좋을지 남겨주세요."
+                placeholder="예: 도움이 된 부분, 더 보완되면 좋을 부분 등"
                 onChange={(event) => updateSingle('comment', event.target.value)}
               />
             </label>
             <label className="feedback-email-field">
-              서비스 사용 안내를 받을 이메일을 남겨주세요.
+              서비스 이용 안내를 받을 이메일
               <input
                 type="email"
                 required
@@ -967,7 +960,7 @@ function FeedbackModal({
               {submitState === 'loading' ? '제출 중...' : '피드백 제출하기'}
             </button>
             {submitState === 'success' && (
-              <p>의견이 저장되었습니다. 서비스 이용 안내와 다음 버전 개선에 참고하겠습니다.</p>
+              <p>의견이 저장되었습니다. 추가 리포트와 서비스 안내에 참고하겠습니다.</p>
             )}
             {submitState === 'error' && <p>피드백 저장 중 문제가 발생했습니다.</p>}
           </div>
