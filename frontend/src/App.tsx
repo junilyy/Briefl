@@ -780,22 +780,20 @@ function ServiceGuidePanel({
       <div className="limit-copy">
         <span className="limit-kicker">서비스 안내 신청</span>
         <h2 id="guide-title">
-          {isAfterReport ? '다른 종목 리포트도 받아보고 싶다면' : '다른 종목도 분석해보고 싶다면'}
+          {isAfterReport ? '횟수와 종목 제한 없이 이용해보고 싶다면' : '다른 종목도 제한 없이 분석해보고 싶다면'}
         </h2>
         <p>
           {isAfterReport
-            ? '이 브리프가 도움이 되었다면 이메일을 남겨주세요. 추가 종목 리포트와 서비스 이용 안내를 먼저 보내드릴게요.'
-            : '10초 피드백과 이메일을 남기면 추가 종목 리포트와 서비스 이용 안내를 받아볼 수 있습니다.'}
+            ? '피드백과 이메일을 남겨주시면 더 많은 종목을 제한 없이 확인할 수 있는 서비스 이용 절차를 안내드릴게요.'
+            : '10초 피드백과 이메일을 남기면 횟수와 종목 제한 없이 이용 가능한 서비스 안내를 받아볼 수 있습니다.'}
         </p>
+        <strong className="limit-free-benefit">지금 신청하면 3개월 무료</strong>
       </div>
       <div className="limit-action-card">
-        <span className="limit-card-kicker">서비스 안내 신청</span>
-        <strong>추가 종목 리포트와 이용 안내를 받아보세요.</strong>
-        <p>짧은 피드백을 남기면 다음 버전 개선에 반영됩니다.</p>
         <button className="primary-button" type="button" onClick={onGuideClick}>
           더 많은 리포트 신청하기
         </button>
-        <small>버튼을 누르면 피드백 입력 창이 열립니다.</small>
+        <small>버튼을 누르면 피드백과 이메일 입력 창이 열립니다.</small>
       </div>
     </section>
   )
@@ -890,8 +888,8 @@ function FeedbackModal({
             </h2>
             {isMoreReportsMode ? (
               <div className="feedback-modal-copy">
-                <p>짧은 피드백과 이메일을 남겨주시면 추가 종목 리포트와 서비스 이용 안내를 보내드릴게요.</p>
-                <small>초기 신청자 혜택은 추후 안내드릴 예정입니다.</small>
+                <p>짧은 피드백과 이메일을 남겨주시면 횟수와 종목 제한 없이 이용 가능한 서비스 절차를 안내드릴게요.</p>
+                <small>지금 신청하면 3개월 무료 혜택을 먼저 안내드립니다.</small>
               </div>
             ) : (
               <p>짧게 선택해주시면 다음 버전 개선에 반영하겠습니다.</p>
