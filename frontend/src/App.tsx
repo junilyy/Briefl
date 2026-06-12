@@ -300,7 +300,6 @@ function HeroSection({
   return (
     <section className="hero-section" aria-labelledby="page-title">
       <div className="hero-copy">
-        <span className="eyebrow">AI 기반 관심 주식 뉴스 분석</span>
         <h1 id="page-title">
           <span>내 주식 떨어지고 나서야</span>
           <span>악재 뉴스를 찾고 있나요?</span>
@@ -475,7 +474,6 @@ function ProblemSection() {
   return (
     <section className="problem-section" aria-labelledby="problem-title">
       <div className="section-heading">
-        <span className="eyebrow">Problem</span>
         <h2 id="problem-title">뉴스를 봐도 어렵고, 안 보면 늦습니다.</h2>
       </div>
       <div className="target-grid">
@@ -520,7 +518,6 @@ function FeatureSection() {
   return (
     <section className="feature-section" aria-labelledby="feature-title">
       <div className="section-heading">
-        <span className="eyebrow">Features</span>
         <h2 id="feature-title">뉴스 요약이 아니라, 판단할 포인트를 정리합니다.</h2>
       </div>
       <div className="feature-grid">
@@ -562,7 +559,6 @@ function ReportGenerator({
   return (
     <section className="generator-section" id="report-generator" ref={refTarget}>
       <div className="generator-copy">
-        <span className="eyebrow">Free AI Report</span>
         <h2>지금은 5개 종목으로 먼저 체험해볼 수 있습니다.</h2>
         <p>
           삼성전자, NAVER, 카카오, Tesla, NVIDIA 중 하나를 선택하거나 직접 입력해 오늘의 AI 뉴스
@@ -725,7 +721,6 @@ function LimitModal({ visible, onBetaClick }: { visible: boolean; onBetaClick: (
   return (
     <section className="limit-panel" role="alert" aria-labelledby="limit-title">
       <div>
-        <span className="eyebrow">Limit</span>
         <h2 id="limit-title">다른 종목도 확인하고 싶으신가요?</h2>
         <p>
           현재 무료 리포트는 IP당 1회 제공됩니다. 더 많은 종목과 매일 업데이트 리포트를
@@ -799,7 +794,6 @@ function FeedbackSection({
   return (
     <section className={`feedback-section ${visible ? '' : 'is-muted'}`} ref={refTarget} aria-labelledby="feedback-title">
       <div className="section-heading">
-        <span className="eyebrow">Beta Feedback</span>
         <h2 id="feedback-title">방금 받은 AI 브리프, 실제로 도움이 되었나요?</h2>
         <p>10초만 선택해주세요. 이후 버전 개선에 반영됩니다.</p>
       </div>
