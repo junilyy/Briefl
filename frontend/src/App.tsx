@@ -375,46 +375,45 @@ function HeroExperienceForm({
 function HeroPreviewCard() {
   return (
     <aside className="preview-card" aria-label="AI 리포트 미리보기">
-      <div className="preview-top">
-        <span>LIVE BRIEF</span>
-        <strong>삼성전자</strong>
+      <div className="preview-report-head">
+        <div>
+          <span>AI NEWS BRIEF</span>
+          <strong>삼성전자 오늘의 리포트</strong>
+          <small>LIVE PREVIEW</small>
+        </div>
+        <div className="preview-judgement-card">
+          <span>종합 판단</span>
+          <div>
+            <strong>악재</strong>
+            <em>-0.7</em>
+          </div>
+          <div className="preview-risk-meter" aria-label="뉴스 영향 점수 범위">
+            <span>-1.0</span>
+            <div>
+              <i />
+            </div>
+            <span>+1.0</span>
+          </div>
+        </div>
       </div>
 
-      <div className="risk-headline">
-        <div>
-          <span>오늘의 종합 판단</span>
-          <strong>악재 신호 우세</strong>
-        </div>
-        <b>-0.7</b>
-      </div>
-
-      <div className="preview-risk-meter" aria-label="뉴스 영향 점수 범위">
-        <span>-1.0</span>
-        <div>
-          <i />
-        </div>
-        <span>+1.0</span>
-      </div>
-
-      <div className="signal-summary" aria-label="뉴스 신호 요약">
-        <div>
-          <span className="signal-dot negative" />
-          <strong>2</strong>
-          <small>악재</small>
-        </div>
-        <div>
-          <span className="signal-dot neutral" />
-          <strong>1</strong>
-          <small>중립</small>
-        </div>
-        <div>
-          <span className="signal-dot positive" />
-          <strong>1</strong>
-          <small>호재</small>
-        </div>
+      <div className="preview-main-grid">
+        <section className="preview-summary-card">
+          <span>뉴스 요약</span>
+          <p>경쟁사 신제품과 환율 변동성이 함께 부각되며 단기 부담 요인이 먼저 확인됩니다.</p>
+        </section>
+        <section className="preview-impact-card">
+          <span>가격 영향 변수</span>
+          <strong>악재 요인 우세</strong>
+          <p>실적 발표 전 수요 전망과 경쟁사 가격 전략을 함께 봐야 합니다.</p>
+        </section>
       </div>
 
       <div className="preview-news-list" aria-label="핵심 뉴스 신호">
+        <div className="preview-block-title">
+          <strong>핵심 뉴스</strong>
+          <span>3건</span>
+        </div>
         <div className="news-line negative">
           <span>악재</span>
           <strong>경쟁사 신제품 출시, 점유율 압박 가능성</strong>
@@ -427,11 +426,6 @@ function HeroPreviewCard() {
           <span>호재</span>
           <strong>메모리 업황 회복 기대는 하단 방어 요인</strong>
         </div>
-      </div>
-
-      <div className="preview-check">
-        <span>오늘의 판단 포인트</span>
-        <strong>실적 발표 전 수요 전망과 경쟁사 가격 영향 변수</strong>
       </div>
     </aside>
   )
