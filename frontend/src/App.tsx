@@ -645,6 +645,10 @@ function ReportResult({
           <div className="impact-meter" aria-hidden="true">
             <i style={{ left: scorePosition(report.newsImpactScore) }} />
           </div>
+          <div className="impact-meter-labels" aria-hidden="true">
+            <span>-1.0</span>
+            <span>+1.0</span>
+          </div>
         </div>
       </div>
 
