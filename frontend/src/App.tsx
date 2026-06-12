@@ -172,9 +172,16 @@ function App() {
   }
 
   const scrollToFeedback = () => {
-    window.setTimeout(() => {
-      feedbackRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }, 80)
+    window.requestAnimationFrame(() => {
+      window.setTimeout(() => {
+        feedbackRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, 180)
+    })
+  }
+
+  const handleHeroExperience = () => {
+    setMessage('아래 리포트 생성 영역에서 관심 종목을 확인해보세요.')
+    scrollToReport()
   }
 
   const handleCreateReport = async () => {
@@ -184,7 +191,9 @@ function App() {
     }
 
     if (!selectedStock) {
-      setMessage('현재 지원하는 종목명을 입력해주세요.')
+      setLimitVisible(true)
+      setMessage('아직 지원하지 않는 종목입니다. 받고 싶은 종목을 피드백으로 남겨주세요.')
+      scrollToFeedback()
       return
     }
 
@@ -219,13 +228,10 @@ function App() {
     <main className="page-shell">
       <TopNav />
       <HeroSection
-        stocks={stocks}
         stockInput={stockInput}
-        stockState={stockState}
         reportState={reportState}
-        message={message}
         onStockInput={setStockInput}
-        onCreate={handleCreateReport}
+        onExperience={handleHeroExperience}
       />
       <ProblemSection />
       <FeatureSection />
@@ -282,21 +288,15 @@ function TopNav() {
 }
 
 function HeroSection({
-  stocks,
   stockInput,
-  stockState,
   reportState,
-  message,
   onStockInput,
-  onCreate,
+  onExperience,
 }: {
-  stocks: Stock[]
   stockInput: string
-  stockState: LoadState
   reportState: LoadState
-  message: string
   onStockInput: (value: string) => void
-  onCreate: () => void
+  onExperience: () => void
 }) {
   return (
     <section className="hero-section" aria-labelledby="page-title">
@@ -310,21 +310,56 @@ function HeroSection({
           관심 종목을 입력하면 오늘 나온 뉴스를 AI가 모아 호재·악재·중립 가능성과 가격 영향
           포인트를 1분 만에 정리해드립니다.
         </p>
-        <StockSearchForm
-          idPrefix="hero"
-          stocks={stocks}
+        <HeroExperienceForm
           stockInput={stockInput}
-          stockState={stockState}
           reportState={reportState}
           onStockInput={onStockInput}
-          onCreate={onCreate}
-          buttonLabel="무료 리포트 생성하기"
+          onExperience={onExperience}
         />
-        {message && <p className="hero-status">{message}</p>}
       </div>
 
       <HeroPreviewCard />
     </section>
+  )
+}
+
+function HeroExperienceForm({
+  stockInput,
+  reportState,
+  onStockInput,
+  onExperience,
+}: {
+  stockInput: string
+  reportState: LoadState
+  onStockInput: (value: string) => void
+  onExperience: () => void
+}) {
+  return (
+    <div className="stock-search hero-entry">
+      <label htmlFor="hero-stock-input">관심 종목</label>
+      <div className="stock-search-row">
+        <input
+          id="hero-stock-input"
+          value={stockInput}
+          placeholder="예: 삼성전자"
+          onChange={(event) => onStockInput(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') {
+              onExperience()
+            }
+          }}
+        />
+        <button
+          className="primary-button"
+          type="button"
+          disabled={reportState === 'loading'}
+          onClick={onExperience}
+        >
+          AI 리포트 체험하기
+        </button>
+      </div>
+      <p className="hero-entry-help">입력한 종목으로 아래 생성 영역에서 실제 리포트를 만들어볼 수 있습니다.</p>
+    </div>
   )
 }
 
