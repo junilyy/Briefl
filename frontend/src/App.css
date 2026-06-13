@@ -1916,13 +1916,18 @@
   }
 
   .feedback-backdrop {
+    --feedback-modal-top: clamp(
+      max(12px, env(safe-area-inset-top)),
+      var(--feedback-anchor-top, 12px),
+      42dvh
+    );
     place-items: start center;
-    padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom));
+    padding: var(--feedback-modal-top) 12px max(12px, env(safe-area-inset-bottom));
   }
 
   .feedback-backdrop .feedback-section {
     width: 100%;
-    max-height: calc(100dvh - 24px);
+    max-height: calc(100dvh - var(--feedback-modal-top) - max(12px, env(safe-area-inset-bottom)));
     border-radius: 18px;
     padding: 18px;
   }
