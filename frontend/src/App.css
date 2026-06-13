@@ -1916,28 +1916,40 @@
   }
 
   .feedback-backdrop {
-    --feedback-modal-top: clamp(
-      max(12px, env(safe-area-inset-top)),
-      var(--feedback-anchor-top, 12px),
-      42dvh
-    );
-    place-items: start center;
-    padding: var(--feedback-modal-top) 12px max(12px, env(safe-area-inset-bottom));
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 12px 10px max(12px, env(safe-area-inset-bottom));
+    overflow: hidden;
   }
 
   .feedback-backdrop .feedback-section {
     width: 100%;
-    max-height: calc(100dvh - var(--feedback-modal-top) - max(12px, env(safe-area-inset-bottom)));
-    border-radius: 18px;
+    max-height: min(88dvh, 720px);
+    border-radius: 20px 20px 16px 16px;
     padding: 18px;
+    overflow: auto;
+    overscroll-behavior: contain;
   }
 
   .feedback-modal-header {
-    gap: 12px;
+    gap: 10px;
+    margin-bottom: 10px;
   }
 
   .feedback-modal-header h2 {
-    font-size: clamp(24px, 7vw, 30px);
+    font-size: 24px;
+  }
+
+  .feedback-modal-header p,
+  .feedback-modal-copy p {
+    font-size: 14px;
+    line-height: 1.55;
+  }
+
+  .modal-close-button {
+    min-width: 50px;
+    min-height: 34px;
   }
 
   .feedback-group {

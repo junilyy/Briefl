@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { CSSProperties, FormEvent, RefObject } from 'react'
+import type { FormEvent, RefObject } from 'react'
 import { createReport, getStocks } from './api'
 import { submitReportFeedback, submitVisitorLog } from './api/feedbackApi'
 import type { Report, ReportSentimentAnalysis, Stock } from './types'
@@ -156,7 +156,6 @@ function App() {
   const [limitVisible, setLimitVisible] = useState(false)
   const [guideModalOpen, setGuideModalOpen] = useState(false)
   const [guideModalMode, setGuideModalMode] = useState<FeedbackModalMode>('reportFeedback')
-  const [guideModalAnchorTop, setGuideModalAnchorTop] = useState<number | null>(null)
   const reportRef = useRef<HTMLElement | null>(null)
   const visitorLoggedRef = useRef(false)
 
@@ -199,7 +198,6 @@ function App() {
 
   const openMoreReportsModal = () => {
     setGuideModalMode('moreReports')
-    setGuideModalAnchorTop(null)
     setGuideModalOpen(true)
   }
 
@@ -267,21 +265,19 @@ function App() {
           onStockInput={setStockInput}
           onCreate={handleCreateReport}
           guidePanelVisible={Boolean(report) && !limitVisible}
-          onGuideClick={(anchorTop) => {
+          onGuideClick={() => {
             setGuideModalMode('reportFeedback')
-            setGuideModalAnchorTop(anchorTop)
             setGuideModalOpen(true)
           }}
         />
-        <FeedbackModal
-          open={guideModalOpen}
-          mode={guideModalMode}
-          onClose={() => setGuideModalOpen(false)}
-          report={report}
-          selectedStockLabel={selectedStockLabel}
-          anchorTop={guideModalAnchorTop}
-        />
       </main>
+      <FeedbackModal
+        open={guideModalOpen}
+        mode={guideModalMode}
+        onClose={() => setGuideModalOpen(false)}
+        report={report}
+        selectedStockLabel={selectedStockLabel}
+      />
     </>
   )
 }
@@ -591,7 +587,7 @@ function ReportGenerator({
   onStockInput: (value: string) => void
   onCreate: () => void
   guidePanelVisible: boolean
-  onGuideClick: (anchorTop: number) => void
+  onGuideClick: () => void
 }) {
   return (
     <section className="generator-section" id="report-generator" ref={refTarget}>
@@ -783,7 +779,7 @@ function ServiceGuidePanel({
 }: {
   visible: boolean
   mode: 'limit' | 'afterReport'
-  onGuideClick: (anchorTop: number) => void
+  onGuideClick: () => void
 }) {
   if (!visible) {
     return null
@@ -806,13 +802,7 @@ function ServiceGuidePanel({
       </div>
       <div className="limit-action-card">
         <strong className="limit-free-benefit">지금 신청하면 3개월 무료</strong>
-        <button
-          className="primary-button"
-          type="button"
-          onClick={(event) => {
-            onGuideClick(event.currentTarget.getBoundingClientRect().top)
-          }}
-        >
+        <button className="primary-button" type="button" onClick={onGuideClick}>
           신청하러가기
         </button>
       </div>
@@ -826,14 +816,12 @@ function FeedbackModal({
   onClose,
   report,
   selectedStockLabel,
-  anchorTop,
 }: {
   open: boolean
   mode: FeedbackModalMode
   onClose: () => void
   report: Report | null
   selectedStockLabel: string
-  anchorTop: number | null
 }) {
   const [feedback, setFeedback] = useState<FeedbackState>(initialFeedback)
   const [submitState, setSubmitState] = useState<LoadState>('idle')
@@ -902,12 +890,7 @@ function FeedbackModal({
   const isMoreReportsMode = mode === 'moreReports'
 
   return (
-    <div
-      className="feedback-backdrop"
-      role="presentation"
-      style={anchorTop === null ? undefined : ({ '--feedback-anchor-top': `${anchorTop}px` } as CSSProperties)}
-      onMouseDown={onClose}
-    >
+    <div className="feedback-backdrop" role="presentation" onMouseDown={onClose}>
       <section
         className="feedback-section"
         ref={modalRef}
