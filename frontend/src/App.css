@@ -1560,11 +1560,14 @@
 .feedback-backdrop {
   position: fixed;
   inset: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
   z-index: 50;
   display: grid;
   place-items: center;
   padding: 22px;
-  overflow-y: auto;
+  overflow: hidden;
   overscroll-behavior: contain;
   background: rgba(2, 6, 23, 0.72);
   backdrop-filter: blur(10px);
@@ -1572,9 +1575,10 @@
 
 .feedback-backdrop .feedback-section {
   width: min(900px, 100%);
-  max-height: min(92vh, 820px);
+  max-height: min(calc(100dvh - 44px), 820px);
   margin: 0;
   overflow: auto;
+  overscroll-behavior: contain;
   border: 1px solid rgba(255, 255, 255, 0.72);
   background: #fff;
   box-shadow: 0 34px 110px rgba(2, 6, 23, 0.42);
