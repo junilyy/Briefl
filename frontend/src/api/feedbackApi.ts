@@ -4,6 +4,7 @@ import { getDeviceType, getTimeStamp, getUtm } from '../utils/meta'
 const GOOGLE_APPS_SCRIPT_URL = import.meta.env.VITE_GOOGLE_APPS_SCRIPT_URL?.trim() ?? ''
 const VISITORS_SHEET_TABLE = 'visitors_ver2'
 const FEEDBACK_SHEET_TABLE = 'beta_testers_ver2'
+const REPORT_ATTEMPTS_SHEET_TABLE = 'report_attempts_ver2'
 
 let clientIpPromise: Promise<string> | null = null
 
@@ -23,6 +24,17 @@ type ReportFeedbackInput = {
   willingnessToPay: string
   expectedFeature: string
   comment: string
+}
+
+type ReportAttemptInput = {
+  attemptId: string
+  stockInput: string
+  matchedStockName: string
+  matchedStockCode?: string
+  isSupportedStock: boolean
+  attemptResult: 'validation_failed' | 'success' | 'failed'
+  failureReason?: string
+  reportId?: number | null
 }
 
 async function getClientIp() {
@@ -108,4 +120,27 @@ export async function submitReportFeedback(input: ReportFeedbackInput) {
   }
 
   await insertGoogleSheetRow(FEEDBACK_SHEET_TABLE, payload)
+}
+
+export async function submitReportAttempt(input: ReportAttemptInput) {
+  const payload = {
+    id: getUserIdFromCookie(),
+    attemptId: input.attemptId,
+    stockInput: input.stockInput,
+    matchedStockName: input.matchedStockName,
+    matchedStockCode: input.matchedStockCode ?? '',
+    isSupportedStock: input.isSupportedStock,
+    attemptResult: input.attemptResult,
+    failureReason: input.failureReason ?? '',
+    reportId: input.reportId ?? '',
+    landingUrl: window.location.href,
+    ip: await getClientIp(),
+    referer: document.referrer,
+    utm: getUtm(),
+    device: getDeviceType(),
+    userAgent: navigator.userAgent,
+    time_stamp: getTimeStamp(),
+  }
+
+  await insertGoogleSheetRow(REPORT_ATTEMPTS_SHEET_TABLE, payload)
 }

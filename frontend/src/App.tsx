@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { FormEvent, RefObject } from 'react'
 import { createReport, getStocks } from './api'
-import { submitReportFeedback, submitVisitorLog } from './api/feedbackApi'
+import { submitReportAttempt, submitReportFeedback, submitVisitorLog } from './api/feedbackApi'
 import type { Report, ReportSentimentAnalysis, Stock } from './types'
 import './App.css'
 
@@ -196,26 +196,74 @@ function App() {
     scrollToReport()
   }
 
+  const logReportAttempt = (input: {
+    attemptId: string
+    stockInput: string
+    matchedStockName?: string
+    isSupportedStock: boolean
+    attemptResult: 'validation_failed' | 'success' | 'failed'
+    failureReason?: string
+    reportId?: number | null
+  }) => {
+    submitReportAttempt({
+      attemptId: input.attemptId,
+      stockInput: input.stockInput,
+      matchedStockName: input.matchedStockName ?? '',
+      matchedStockCode: '',
+      isSupportedStock: input.isSupportedStock,
+      attemptResult: input.attemptResult,
+      failureReason: input.failureReason,
+      reportId: input.reportId,
+    }).catch((error) => {
+      console.warn('리포트 생성 시도 로그 전송에 실패했습니다.', error)
+    })
+  }
+
   const openMoreReportsModal = () => {
     setGuideModalMode('moreReports')
     setGuideModalOpen(true)
   }
 
   const handleCreateReport = async () => {
+    const attemptId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+    const attemptedStockInput = stockInput.trim()
+
     if (stockState !== 'success') {
       setMessage('지원 종목을 불러오는 중입니다.')
+      logReportAttempt({
+        attemptId,
+        stockInput: attemptedStockInput,
+        isSupportedStock: false,
+        attemptResult: 'validation_failed',
+        failureReason: '지원 종목 목록 로딩 중',
+      })
       return
     }
 
     if (!selectedStock) {
       setLimitVisible(true)
       setMessage('체험 가능한 종목이 아닙니다. 종목, 횟수 제한 없이 이용하고 싶다면 서비스를 신청해주세요.')
+      logReportAttempt({
+        attemptId,
+        stockInput: attemptedStockInput,
+        isSupportedStock: false,
+        attemptResult: 'validation_failed',
+        failureReason: '체험 가능한 종목이 아님',
+      })
       openMoreReportsModal()
       return
     }
 
     if (generatedStockName && generatedStockName !== selectedStock.stockName) {
       setLimitVisible(true)
+      logReportAttempt({
+        attemptId,
+        stockInput: attemptedStockInput,
+        matchedStockName: selectedStock.stockName,
+        isSupportedStock: true,
+        attemptResult: 'validation_failed',
+        failureReason: '무료 리포트 1회 생성 제한',
+      })
       openMoreReportsModal()
       return
     }
@@ -231,13 +279,31 @@ function App() {
       setGeneratedStockName(selectedStock.stockName)
       setReportState('success')
       setMessage('무료 리포트가 생성되었습니다.')
+      logReportAttempt({
+        attemptId,
+        stockInput: attemptedStockInput,
+        matchedStockName: selectedStock.stockName,
+        isSupportedStock: true,
+        attemptResult: 'success',
+        reportId: data.reportId,
+      })
     } catch (error) {
+      const failureReason = error instanceof Error ? error.message : '알 수 없는 오류'
+
       setReportState('error')
       setMessage(
         error instanceof Error
           ? `리포트 생성에 실패했습니다. ${error.message}`
           : '리포트 생성에 실패했습니다.',
       )
+      logReportAttempt({
+        attemptId,
+        stockInput: attemptedStockInput,
+        matchedStockName: selectedStock.stockName,
+        isSupportedStock: true,
+        attemptResult: 'failed',
+        failureReason,
+      })
     }
   }
 
