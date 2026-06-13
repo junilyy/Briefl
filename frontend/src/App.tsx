@@ -825,6 +825,24 @@ function FeedbackModal({
 }) {
   const [feedback, setFeedback] = useState<FeedbackState>(initialFeedback)
   const [submitState, setSubmitState] = useState<LoadState>('idle')
+  const modalRef = useRef<HTMLElement | null>(null)
+
+  useEffect(() => {
+    if (!open) {
+      return
+    }
+
+    window.requestAnimationFrame(() => {
+      modalRef.current?.scrollTo({ top: 0, left: 0 })
+    })
+
+    const originalOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    return () => {
+      document.body.style.overflow = originalOverflow
+    }
+  }, [open, mode])
 
   const updateSingle = (key: keyof FeedbackState, value: string) => {
     setFeedback((current) => ({ ...current, [key]: value }))
@@ -875,6 +893,7 @@ function FeedbackModal({
     <div className="feedback-backdrop" role="presentation" onMouseDown={onClose}>
       <section
         className="feedback-section"
+        ref={modalRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="feedback-title"
