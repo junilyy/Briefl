@@ -9,4 +9,6 @@ public interface StockRepository extends JpaRepository<Stock, Long> {
     boolean existsByStockName(String stockName);
 
     Optional<Stock> findByStockName(String stockName);
+
+    Optional<Stock> findByStockNameIgnoreCaseOrDisplayNameIgnoreCase(String stockName, String displayName);
 }

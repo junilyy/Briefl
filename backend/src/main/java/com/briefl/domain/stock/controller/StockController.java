@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "Stock", description = "지원 종목 API")
+@Tag(name = "Stock", description = "추천 종목 API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/stocks")

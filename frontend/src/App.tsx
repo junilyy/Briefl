@@ -150,7 +150,6 @@ function App() {
   const [stockInput, setStockInput] = useState('')
   const [report, setReport] = useState<Report | null>(null)
   const [generatedStockName, setGeneratedStockName] = useState('')
-  const [stockState, setStockState] = useState<LoadState>('loading')
   const [reportState, setReportState] = useState<LoadState>('idle')
   const [message, setMessage] = useState('')
   const [limitVisible, setLimitVisible] = useState(false)
@@ -163,11 +162,9 @@ function App() {
     getStocks()
       .then((items) => {
         setStocks(items)
-        setStockState('success')
       })
       .catch((error: Error) => {
-        setStockState('error')
-        setMessage(`지원 종목을 불러오지 못했습니다. ${error.message}`)
+        setMessage(`추천 종목을 불러오지 못했습니다. 직접 종목명을 입력해 리포트를 생성할 수 있습니다. ${error.message}`)
       })
   }, [])
 
@@ -227,39 +224,26 @@ function App() {
   const handleCreateReport = async () => {
     const attemptId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
     const attemptedStockInput = stockInput.trim()
+    const requestedStockName = selectedStock?.stockName ?? attemptedStockInput
 
-    if (stockState !== 'success') {
-      setMessage('지원 종목을 불러오는 중입니다.')
+    if (!requestedStockName) {
+      setMessage('분석할 관심 종목을 입력해주세요.')
       logReportAttempt({
         attemptId,
         stockInput: attemptedStockInput,
         isSupportedStock: false,
         attemptResult: 'validation_failed',
-        failureReason: '지원 종목 목록 로딩 중',
+        failureReason: '종목명 미입력',
       })
       return
     }
 
-    if (!selectedStock) {
-      setLimitVisible(true)
-      setMessage('체험 가능한 종목이 아닙니다. 종목, 횟수 제한 없이 이용하고 싶다면 서비스를 신청해주세요.')
-      logReportAttempt({
-        attemptId,
-        stockInput: attemptedStockInput,
-        isSupportedStock: false,
-        attemptResult: 'validation_failed',
-        failureReason: '체험 가능한 종목이 아님',
-      })
-      openMoreReportsModal()
-      return
-    }
-
-    if (generatedStockName && generatedStockName !== selectedStock.stockName) {
+    if (generatedStockName && generatedStockName !== requestedStockName) {
       setLimitVisible(true)
       logReportAttempt({
         attemptId,
         stockInput: attemptedStockInput,
-        matchedStockName: selectedStock.stockName,
+        matchedStockName: requestedStockName,
         isSupportedStock: true,
         attemptResult: 'validation_failed',
         failureReason: '무료 리포트 1회 생성 제한',
@@ -274,15 +258,15 @@ function App() {
     scrollToReport()
 
     try {
-      const data = await createReport(selectedStock.stockName)
+      const data = await createReport(requestedStockName)
       setReport(data)
-      setGeneratedStockName(selectedStock.stockName)
+      setGeneratedStockName(requestedStockName)
       setReportState('success')
       setMessage('무료 리포트가 생성되었습니다.')
       logReportAttempt({
         attemptId,
         stockInput: attemptedStockInput,
-        matchedStockName: selectedStock.stockName,
+        matchedStockName: requestedStockName,
         isSupportedStock: true,
         attemptResult: 'success',
         reportId: data.reportId,
@@ -299,7 +283,7 @@ function App() {
       logReportAttempt({
         attemptId,
         stockInput: attemptedStockInput,
-        matchedStockName: selectedStock.stockName,
+        matchedStockName: requestedStockName,
         isSupportedStock: true,
         attemptResult: 'failed',
         failureReason,
@@ -326,7 +310,6 @@ function App() {
           selectedStockLabel={selectedStockLabel}
           stocks={stocks}
           stockInput={stockInput}
-          stockState={stockState}
           message={message}
           onStockInput={setStockInput}
           onCreate={handleCreateReport}
@@ -513,7 +496,6 @@ function StockSearchForm({
   idPrefix,
   stocks,
   stockInput,
-  stockState,
   reportState,
   onStockInput,
   onCreate,
@@ -522,13 +504,12 @@ function StockSearchForm({
   idPrefix: string
   stocks: Stock[]
   stockInput: string
-  stockState: LoadState
   reportState: LoadState
   onStockInput: (value: string) => void
   onCreate: () => void
   buttonLabel: string
 }) {
-  const disabled = stockState !== 'success' || reportState === 'loading'
+  const disabled = reportState === 'loading'
 
   return (
     <div className="stock-search">
@@ -551,7 +532,7 @@ function StockSearchForm({
         </button>
       </div>
       <div className="quick-stock-row" aria-label="빠른 종목 선택">
-        <span>체험 가능 종목</span>
+        <span>추천 종목</span>
         {stocks.slice(0, 5).map((stock) => (
           <button type="button" key={stock.stockName} onClick={() => onStockInput(stockLabel(stock))}>
             {stockLabel(stock)}
@@ -635,7 +616,6 @@ function ReportGenerator({
   selectedStockLabel,
   stocks,
   stockInput,
-  stockState,
   message,
   onStockInput,
   onCreate,
@@ -648,7 +628,6 @@ function ReportGenerator({
   selectedStockLabel: string
   stocks: Stock[]
   stockInput: string
-  stockState: LoadState
   message: string
   onStockInput: (value: string) => void
   onCreate: () => void
@@ -658,24 +637,23 @@ function ReportGenerator({
   return (
     <section className="generator-section" id="report-generator" ref={refTarget}>
       <div className="generator-copy">
-        <h2>대표 종목으로 BRIEFL 리포트를 테스트해보세요.</h2>
+        <h2>원하는 관심 종목으로 BRIEFL 리포트를 테스트해보세요.</h2>
         <p>
-          삼성전자, NAVER, 카카오, Tesla, NVIDIA 중 하나를 선택해 관심 종목 뉴스 분석 리포트가
-          악재 신호와 가격 영향 변수를 어떻게 정리하는지 확인해보세요.
+          종목명을 직접 입력하거나 추천 종목을 선택해 AI 뉴스 분석 리포트가 악재 신호와 가격 영향
+          변수를 어떻게 정리하는지 확인해보세요.
         </p>
       </div>
       <StockSearchForm
         idPrefix="generator"
         stocks={stocks}
         stockInput={stockInput}
-        stockState={stockState}
         reportState={reportState}
         onStockInput={onStockInput}
         onCreate={onCreate}
         buttonLabel="무료 리포트 생성하기"
       />
       {message && (
-        <p className={`generator-status ${message.includes('체험 가능한 종목') ? 'error' : ''}`}>
+        <p className={`generator-status ${message.includes('입력해주세요') ? 'error' : ''}`}>
           {message}
         </p>
       )}
@@ -858,18 +836,19 @@ function ServiceGuidePanel({
       <div className="limit-copy">
         <span className="limit-kicker">서비스 안내 신청</span>
         <h2 id="guide-title">
-          {isAfterReport ? '횟수와 종목 제한 없이 이용해보고 싶다면' : '다른 종목도 제한 없이 분석해보고 싶다면'}
+          {isAfterReport ? '다른 종목 리포트도 계속 받아보고 싶다면' : '관심 종목을 계속 분석해보고 싶다면'}
         </h2>
         <p>
           {isAfterReport
-            ? '피드백과 이메일을 남겨주시면 더 많은 종목을 제한 없이 확인할 수 있는 서비스 이용 절차를 안내드릴게요.'
-            : '10초 피드백과 이메일을 남기면 횟수와 종목 제한 없이 이용 가능한 서비스 안내를 받아볼 수 있습니다.'}
+            ? '피드백과 이메일을 남겨주시면 종목과 횟수 제한 없이 이용 가능한 서비스 절차를 안내드릴게요.'
+            : '10초 피드백과 이메일을 남기면 종목과 횟수 제한 없이 이용 가능한 서비스 안내를 받아볼 수 있습니다.'}
         </p>
+        <p className="limit-deadline">사전 오픈은 6월 15일에 종료됩니다.</p>
       </div>
       <div className="limit-action-card">
-        <strong className="limit-free-benefit">지금 신청하면 3개월 무료</strong>
+        <strong className="limit-free-benefit">6월 15일 마감</strong>
         <button className="primary-button" type="button" onClick={onGuideClick}>
-          신청하러가기
+          계속 이용 신청하기
         </button>
       </div>
     </section>
@@ -974,8 +953,8 @@ function FeedbackModal({
             </h2>
             {isMoreReportsMode ? (
               <div className="feedback-modal-copy">
-                <p>짧은 피드백과 이메일을 남겨주시면 횟수와 종목 제한 없이 이용 가능한 서비스 절차를 안내드릴게요.</p>
-                <small>지금 신청하면 3개월 무료 혜택을 먼저 안내드립니다.</small>
+                <p>짧은 피드백과 이메일을 남겨주시면 종목과 횟수 제한 없이 이용 가능한 서비스 절차를 안내드릴게요.</p>
+                <small>사전 오픈 신청은 6월 15일 마감되며, 신청 시 3개월 무료 혜택을 먼저 안내드립니다.</small>
               </div>
             ) : (
               <p>짧게 선택해주시면 다음 버전 개선에 반영하겠습니다.</p>
