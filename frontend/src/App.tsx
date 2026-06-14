@@ -957,7 +957,6 @@ function FeedbackModal({
             {isMoreReportsMode ? (
               <div className="feedback-modal-copy">
                 <p>짧은 피드백과 이메일을 남겨주시면 종목과 횟수 제한 없이 이용 가능한 서비스 절차를 안내드릴게요.</p>
-                <small>사전 오픈 신청은 6월 15일 마감되며, 신청 시 3개월 무료 혜택을 먼저 안내드립니다.</small>
               </div>
             ) : (
               <p>짧게 선택해주시면 다음 버전 개선에 반영하겠습니다.</p>
