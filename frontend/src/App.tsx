@@ -846,7 +846,7 @@ function ServiceGuidePanel({
         <p className="limit-deadline">사전 오픈은 6월 15일에 종료됩니다.</p>
       </div>
       <div className="limit-action-card">
-        <strong className="limit-free-benefit">6월 15일 마감 · 신청 시 3개월 무료</strong>
+        <strong className="limit-free-benefit">6월 15일 마감</strong>
         <button className="primary-button" type="button" onClick={onGuideClick}>
           계속 이용 신청하기
         </button>
