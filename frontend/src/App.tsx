@@ -851,7 +851,7 @@ function ServiceGuidePanel({
       <div className="limit-action-card">
         <strong className="limit-free-benefit">6월 15일 마감</strong>
         <button className="primary-button" type="button" onClick={onGuideClick}>
-          계속 이용 신청하기
+          서비스 개선 의견 남기기 및 이용 신청
         </button>
       </div>
     </section>
