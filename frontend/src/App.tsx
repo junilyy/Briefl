@@ -840,14 +840,15 @@ function ServiceGuidePanel({
         </h2>
         <p>
           {isAfterReport
-            ? '피드백과 이메일을 남겨주시면 종목과 횟수 제한 없이 이용 가능한 서비스 절차를 안내드릴게요. 사전 오픈 신청은 6월 15일 마감됩니다.'
-            : '10초 피드백과 이메일을 남기면 종목과 횟수 제한 없이 이용 가능한 서비스 안내를 받아볼 수 있습니다. 사전 오픈 신청은 6월 15일 마감됩니다.'}
+            ? '피드백과 이메일을 남겨주시면 종목과 횟수 제한 없이 이용 가능한 서비스 절차를 안내드릴게요.'
+            : '10초 피드백과 이메일을 남기면 종목과 횟수 제한 없이 이용 가능한 서비스 안내를 받아볼 수 있습니다.'}
         </p>
+        <p className="limit-deadline">사전 오픈은 6월 15일에 종료됩니다.</p>
       </div>
       <div className="limit-action-card">
         <strong className="limit-free-benefit">6월 15일 마감 · 신청 시 3개월 무료</strong>
         <button className="primary-button" type="button" onClick={onGuideClick}>
-          신청하러가기
+          계속 이용 신청하기
         </button>
       </div>
     </section>

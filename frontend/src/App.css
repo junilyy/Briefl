@@ -1520,6 +1520,14 @@
   color: rgba(255, 255, 255, 0.72);
 }
 
+.limit-panel .limit-deadline {
+  margin-top: 12px;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 950;
+  letter-spacing: -0.01em;
+}
+
 .limit-free-benefit {
   display: inline-flex;
   width: min(420px, 100%);
