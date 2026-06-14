@@ -31,6 +31,7 @@ public class ReportController {
             summary = "리포트 생성",
             description = """
                     오늘 날짜의 종목 리포트가 있으면 캐시를 반환하고, 없으면 뉴스 수집과 AI 분석 후 저장합니다.
+                    등록된 대표 종목은 직접/간접 뉴스 키워드를 함께 사용하고, 그 외 종목은 입력 종목명 기반 직접 뉴스로 분석합니다.
                     AI_ANALYSIS_MODE=mock이면 OpenAI API 비용 없이 mock 분석 결과를 생성합니다.
                     """
     )
@@ -38,7 +39,7 @@ public class ReportController {
             @ApiResponse(responseCode = "200", description = "리포트 생성 또는 캐시 반환 성공"),
             @ApiResponse(
                     responseCode = "400",
-                    description = "요청 값 오류 또는 지원하지 않는 종목",
+                    description = "요청 값 오류",
                     content = @Content(schema = @Schema(implementation = com.briefl.global.apiPayload.ApiResponse.class))
             ),
             @ApiResponse(
@@ -67,7 +68,7 @@ public class ReportController {
             @ApiResponse(responseCode = "200", description = "오늘 리포트 조회 성공"),
             @ApiResponse(
                     responseCode = "400",
-                    description = "지원하지 않는 종목",
+                    description = "요청 값 오류",
                     content = @Content(schema = @Schema(implementation = com.briefl.global.apiPayload.ApiResponse.class))
             ),
             @ApiResponse(
@@ -78,7 +79,7 @@ public class ReportController {
     })
     @GetMapping
     public ReportResponse getTodayReport(
-            @Parameter(description = "지원 종목명", example = "삼성전자")
+            @Parameter(description = "조회할 종목명", example = "삼성전자")
             @RequestParam String stockName
     ) {
         return reportService.getTodayReport(stockName);

@@ -24,6 +24,7 @@ import java.time.format.DateTimeParseException;
 import java.util.LinkedHashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -85,13 +86,16 @@ public class NewsSearchService {
     }
 
     private List<NewsItemDto> collectEventNews(String stockName, String market, Set<String> excludedTitles) {
-        List<String> eventKeywords = List.of(
+        List<String> eventKeywords = new ArrayList<>(List.of(
                 stockName + " 실적 발표",
                 stockName + " IR 일정",
                 stockName + " 컨퍼런스",
-                stockName + " 주주총회",
-                stockName + " " + market + " 주요 일정"
-        );
+                stockName + " 주주총회"
+        ));
+
+        if (StringUtils.hasText(market)) {
+            eventKeywords.add(stockName + " " + market + " 주요 일정");
+        }
 
         return collectTodayNews(
                 eventKeywords,

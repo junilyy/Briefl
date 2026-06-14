@@ -45,7 +45,7 @@ public class ReportService {
 
     @Transactional
     public ReportResponse createReport(String stockName) {
-        Stock stock = stockService.getSupportedStock(stockName);
+        Stock stock = stockService.getReportStock(stockName);
         LocalDate today = LocalDate.now(SEOUL_ZONE);
 
         return reportRepository.findByStockNameAndReportDate(stock.getStockName(), today)
@@ -55,7 +55,7 @@ public class ReportService {
 
     @Transactional
     public ReportResponse getTodayReport(String stockName) {
-        Stock stock = stockService.getSupportedStock(stockName);
+        Stock stock = stockService.getReportStock(stockName);
         LocalDate today = LocalDate.now(SEOUL_ZONE);
 
         return reportRepository.findByStockNameAndReportDate(stock.getStockName(), today)
