@@ -32,6 +32,7 @@ const loadingSteps = [
   '호재·악재 가능성을 분석하고 있습니다',
   '가격 영향 변수를 정리하고 있습니다',
 ]
+const FREE_REPORT_LIMIT = 3
 
 const usefulOptions = ['뉴스 요약', '호재/악재 분류', '가격 영향 가능성', '간접 이슈 분석', '체크 이벤트', '판단 근거']
 const willingnessOptions = ['무료면 이용', '1,000~3,000원', '5,000원 내외', '10,000원 이상', '이용 의향 없음']
@@ -149,7 +150,7 @@ function App() {
   const [stocks, setStocks] = useState<Stock[]>([])
   const [stockInput, setStockInput] = useState('')
   const [report, setReport] = useState<Report | null>(null)
-  const [generatedStockName, setGeneratedStockName] = useState('')
+  const [generatedStockNames, setGeneratedStockNames] = useState<string[]>([])
   const [reportState, setReportState] = useState<LoadState>('idle')
   const [message, setMessage] = useState('')
   const [limitVisible, setLimitVisible] = useState(false)
@@ -238,7 +239,7 @@ function App() {
       return
     }
 
-    if (generatedStockName && generatedStockName !== requestedStockName) {
+    if (!generatedStockNames.includes(requestedStockName) && generatedStockNames.length >= FREE_REPORT_LIMIT) {
       setLimitVisible(true)
       logReportAttempt({
         attemptId,
@@ -246,7 +247,7 @@ function App() {
         matchedStockName: requestedStockName,
         isSupportedStock: true,
         attemptResult: 'validation_failed',
-        failureReason: '무료 리포트 1회 생성 제한',
+        failureReason: `무료 리포트 ${FREE_REPORT_LIMIT}회 생성 제한`,
       })
       openMoreReportsModal()
       return
@@ -260,7 +261,9 @@ function App() {
     try {
       const data = await createReport(requestedStockName)
       setReport(data)
-      setGeneratedStockName(requestedStockName)
+      setGeneratedStockNames((current) => (
+        current.includes(requestedStockName) ? current : [...current, requestedStockName]
+      ))
       setReportState('success')
       setMessage('무료 리포트가 생성되었습니다.')
       logReportAttempt({
